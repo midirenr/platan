@@ -7,4 +7,6 @@ stages:
 
 test:
   stage: test
-  script: echo $CI_PROJECT_DIR/
+  script: 
+    - echo $CI_PROJECT_DIR/
+    - uname -a
