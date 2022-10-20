@@ -1,0 +1,194 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
+<title>Стенд ПСИ</title>
+{% endblock %}
+
+{% block page_name %}<div align="center">Стенд ПСИ</div>{% endblock %}
+
+{% block middle %}
+<form method="post" id="pci-form">
+    {% csrf_token %}
+    <div id="pci-left-frame">
+        <div align="center"><b>Выберите тип устройства</b></div>
+        {{ form.pci_device_type }}
+        <div align="center"><b>Выберите количество устройств</b></div>
+        {{ form.router_count }}
+        <div class="router-serial-numbers">
+            <div align="right" id="router-container-1">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/sticker_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.router_serial_number_1 }}
+                <div align="left" class="errors" id="router_serial_number_1_error">{{ form.router_serial_number_1.errors.as_text }}</div>
+            </div>
+            <div align="right" id="router-container-2">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/sticker_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.router_serial_number_2 }}
+                <div align="left" class="errors" id="router_serial_number_2_error">{{ form.router_serial_number_2.errors.as_text }}</div>
+            </div>
+            <div align="right" id="router-container-3">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/sticker_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.router_serial_number_3 }}
+                <div align="left" class="errors" id="router_serial_number_3_error">{{ form.router_serial_number_3.errors.as_text }}</div>
+            </div>
+            <div align="right" id="router-container-4">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/sticker_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.router_serial_number_4 }}
+                <div align="left" class="errors" id="router_serial_number_4_error">{{ form.router_serial_number_4.errors.as_text }}</div>
+            </div>
+            <div align="right" id="router-container-5">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/sticker_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.router_serial_number_5 }}
+                <div align="left" class="errors" id="router_serial_number_5_error">{{ form.router_serial_number_5.errors.as_text }}</div>
+            </div>
+        </div>
+        <button type="submit" name="pci_start" id="btn_pci_start">Старт ПСИ</button>
+    </div>
+
+    <div align="center" id="pci-right-frame">
+        <b>Окно вывода</b>
+        {{ form.output }}
+    </div>
+</form>
+
+<script>
+    function clearErrors() {
+        $('#router_serial_number_1_error').remove();
+        $('#router_serial_number_2_error').remove();
+        $('#router_serial_number_3_error').remove();
+        $('#router_serial_number_4_error').remove();
+        $('#router_serial_number_5_error').remove();
+    }
+</script>
+
+<script>
+    $('#btn_pci_start').click(clearErrors);
+</script>
+
+<script>
+    function UpdateEntries() {
+        var selectedCount = $('#id_router_count').val();
+
+        if(selectedCount == 1)
+        {
+            $('#router-container-2').attr('hidden', '');
+            $('#router-container-3').attr('hidden', '');
+            $('#router-container-4').attr('hidden', '');
+            $('#router-container-5').attr('hidden', '');
+            $('#id_router_serial_number_2').removeAttr('required', '');
+            $('#id_router_serial_number_3').removeAttr('required', '');
+            $('#id_router_serial_number_4').removeAttr('required', '');
+            $('#id_router_serial_number_5').removeAttr('required', '');
+            $('#id_router_serial_number_2').val('')
+            $('#router_serial_number_2_error').html('')
+            $('#id_router_serial_number_3').val('')
+            $('#router_serial_number_3_error').html('')
+            $('#id_router_serial_number_4').val('')
+            $('#router_serial_number_4_error').html('')
+            $('#id_router_serial_number_5').val('')
+            $('#router_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 2)
+        {
+            $('#id_router_serial_number_2').attr('required', '');
+            $('#router-container-2').removeAttr('hidden');
+            $('#router-container-3').attr('hidden', '');
+            $('#router-container-4').attr('hidden', '');
+            $('#router-container-5').attr('hidden', '');
+            $('#id_router_serial_number_3').val('')
+            $('#router_serial_number_3_error').html('')
+            $('#id_router_serial_number_4').val('')
+            $('#router_serial_number_4_error').html('')
+            $('#id_router_serial_number_5').val('')
+            $('#router_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 3)
+        {
+            $('#id_router_serial_number_2').attr('required', '');
+            $('#id_router_serial_number_3').attr('required', '');
+            $('#router-container-2').removeAttr('hidden');
+            $('#router-container-3').removeAttr('hidden');
+            $('#router-container-4').attr('hidden', '');
+            $('#router-container-5').attr('hidden', '');
+            $('#id_router_serial_number_4').val('')
+            $('#router_serial_number_4_error').html('')
+            $('#id_router_serial_number_5').val('')
+            $('#router_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 4)
+        {
+            $('#id_router_serial_number_2').attr('required', '');
+            $('#id_router_serial_number_3').attr('required', '');
+            $('#id_router_serial_number_4').attr('required', '');
+            $('#router-container-2').removeAttr('hidden');
+            $('#router-container-3').removeAttr('hidden');
+            $('#router-container-4').removeAttr('hidden');
+            $('#router-container-5').attr('hidden', '');
+            $('#id_router_serial_number_5').val('')
+            $('#router_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 5)
+        {
+            $('#id_router_serial_number_2').attr('required', '');
+            $('#id_router_serial_number_3').attr('required', '');
+            $('#id_router_serial_number_4').attr('required', '');
+            $('#id_router_serial_number_5').attr('required', '');
+            $('#router-container-2').removeAttr('hidden');
+            $('#router-container-3').removeAttr('hidden');
+            $('#router-container-4').removeAttr('hidden');
+            $('#router-container-5').removeAttr('hidden');
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(UpdateEntries);
+</script>
+
+<script>
+    $('#id_router_count').on('change', UpdateEntries);
+</script>
+
+<script>
+    function refresh_data() {
+        $.ajax({
+            url: '{% url "ajax_pci_output" %}',
+            success: function(data) {
+                $('#id_output').html(data),
+                setTimeout(refresh_data, 1000);
+            }
+        });
+    }
+
+    $(function(){
+        refresh_data();
+    });
+</script>
+
+{% endblock %}

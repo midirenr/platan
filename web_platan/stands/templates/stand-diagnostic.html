@@ -1,0 +1,194 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
+<title>Стенд диагностики</title>
+{% endblock %}
+
+{% block page_name %}<div align="center">Стенд диагностики</div>{% endblock %}
+
+{% block middle %}
+<form method="post" id="diagnostic-form">
+    {% csrf_token %}
+    <div id="diag-left-frame">
+        <div align="center"><b>Выберите тип устройства</b></div>
+        {{ form.diagnostic_device_type }}
+        <div align="center"><b>Выберите количество устройств</b></div>
+        {{ form.board_count }}
+        <div class="board-serial-numbers">
+            <div align="right" id="board-container-1">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static 'images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/board_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.board_serial_number_1 }}
+                <div align="left" class="errors" id="board_serial_number_1_error">{{ form.board_serial_number_1.errors.as_text }}</div>
+            </div>
+            <div align="right" id="board-container-2">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}"  width="3%">
+                    <span class="tooltiptext">
+                        <img  class="frame" width="350%" src="{%static '/images/board_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.board_serial_number_2 }}
+                <div align="left" class="errors" id="board_serial_number_2_error">{{ form.board_serial_number_2.errors.as_text }}</div>
+            </div>
+            <div align="right" id="board-container-3">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/board_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.board_serial_number_3 }}
+                <div align="left" class="errors" id="board_serial_number_3_error">{{ form.board_serial_number_3.errors.as_text }}</div>
+            </div>
+            <div align="right" id="board-container-4">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/board_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.board_serial_number_4 }}
+                <div align="left" class="errors" id="board_serial_number_4_error">{{ form.board_serial_number_4.errors.as_text }}</div>
+            </div>
+            <div align="right" id="board-container-5">
+                <div align="center" class="tooltip">
+                    <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+                    <span class="tooltiptext">
+                        <img class="frame" width="350%" src="{%static '/images/board_1.jpg'%}">
+                    </span>
+                </div>
+                {{ form.board_serial_number_5 }}
+                <div align="left" class="errors" id="board_serial_number_5_error">{{ form.board_serial_number_5.errors.as_text }}</div>
+            </div>
+        </div>
+        <button type="submit" name="diagnostic_start" id="btn_diagnostic_start">Старт Диагностики</button>
+        </div>
+
+    <div align="center" id="diag-right-frame">
+        <b>Окно вывода</b>
+        {{ form.output }}
+    </div>
+</form>
+
+<script>
+    function clearErrors() {
+        $('#board_serial_number_1_error').remove();
+        $('#board_serial_number_2_error').remove();
+        $('#board_serial_number_3_error').remove();
+        $('#board_serial_number_4_error').remove();
+        $('#board_serial_number_5_error').remove();
+    }
+</script>
+
+<script>
+    $('#btn_diagnostic_start').click(clearErrors);
+</script>
+
+<script>
+    function UpdateEntries() {
+        var selectedCount = $('#id_board_count').val();
+
+        if(selectedCount == 1)
+        {
+            $('#board-container-2').attr('hidden', '');
+            $('#board-container-3').attr('hidden', '');
+            $('#board-container-4').attr('hidden', '');
+            $('#board-container-5').attr('hidden', '');
+            $('#id_board_serial_number_2').removeAttr('required', '');
+            $('#id_board_serial_number_3').removeAttr('required', '');
+            $('#id_board_serial_number_4').removeAttr('required', '');
+            $('#id_board_serial_number_5').removeAttr('required', '');
+            $('#id_board_serial_number_2').val('')
+            $('#board_serial_number_2_error').html('')
+            $('#id_board_serial_number_3').val('')
+            $('#board_serial_number_3_error').html('')
+            $('#id_board_serial_number_4').val('')
+            $('#board_serial_number_4_error').html('')
+            $('#id_board_serial_number_5').val('')
+            $('#board_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 2)
+        {
+            $('#id_board_serial_number_2').attr('required', '');
+            $('#board-container-2').removeAttr('hidden');
+            $('#board-container-3').attr('hidden', '');
+            $('#board-container-4').attr('hidden', '');
+            $('#board-container-5').attr('hidden', '');
+            $('#id_board_serial_number_3').val('')
+            $('#board_serial_number_3_error').html('')
+            $('#id_board_serial_number_4').val('')
+            $('#board_serial_number_4_error').html('')
+            $('#id_board_serial_number_5').val('')
+            $('#board_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 3)
+        {
+            $('#id_board_serial_number_2').attr('required', '');
+            $('#id_board_serial_number_3').attr('required', '');
+            $('#board-container-2').removeAttr('hidden');
+            $('#board-container-3').removeAttr('hidden');
+            $('#board-container-4').attr('hidden', '');
+            $('#board-container-5').attr('hidden', '');
+            $('#id_board_serial_number_4').val('')
+            $('#board_serial_number_4_error').html('')
+            $('#id_board_serial_number_5').val('')
+            $('#board_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 4)
+        {
+            $('#id_board_serial_number_2').attr('required', '');
+            $('#id_board_serial_number_3').attr('required', '');
+            $('#id_board_serial_number_4').attr('required', '');
+            $('#board-container-2').removeAttr('hidden');
+            $('#board-container-3').removeAttr('hidden');
+            $('#board-container-4').removeAttr('hidden');
+            $('#board-container-5').attr('hidden', '');
+            $('#id_board_serial_number_5').val('')
+            $('#board_serial_number_5_error').html('')
+        }
+        else if(selectedCount == 5)
+        {
+            $('#id_board_serial_number_2').attr('required', '');
+            $('#id_board_serial_number_3').attr('required', '');
+            $('#id_board_serial_number_4').attr('required', '');
+            $('#id_board_serial_number_5').attr('required', '');
+            $('#board-container-2').removeAttr('hidden');
+            $('#board-container-3').removeAttr('hidden');
+            $('#board-container-4').removeAttr('hidden');
+            $('#board-container-5').removeAttr('hidden');
+        }
+    }
+</script>
+
+<script>
+    $(document).ready(UpdateEntries);
+</script>
+
+<script>
+    $('#id_board_count').on('change', UpdateEntries);
+</script>
+
+<script>
+    function refresh_data() {
+        $.ajax({
+            url: '{% url "ajax_diag_output" %}',
+            success: function(data) {
+                $('#id_output').html(data),
+                setTimeout(refresh_data, 1000);
+            }
+        });
+    }
+
+    $(function(){
+        refresh_data();
+    });
+</script>
+
+{% endblock %}

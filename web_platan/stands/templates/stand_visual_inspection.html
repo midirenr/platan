@@ -1,0 +1,37 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}">
+<title>Стенд визуального осмотра</title>
+{% endblock %}
+
+{% block page_name %}<div align="center">Стенд визуального осмотра</div>{% endblock %}
+
+{% block middle %}
+<form method="post">
+    {% csrf_token %}
+    <div align="center">
+        Отсканируйте серийный номер платы
+        <div align="right" class="tooltip">
+        <img class="info-image" align="center" src="{% static '/images/info.png' %}" width="3%">
+        <span class="tooltiptext">
+        <img class="frame" width="350%%" src="{% static '/images/board_1.jpg' %}">
+        </span>
+    </div>
+    </div>
+
+    <div id="board-input-container">
+        <br>
+        {{ form.board_serial_number }}
+        <div align="left" class="errors board-case-serial-number-error">
+            {{ form.board_serial_number.errors.as_text }}
+        </div>
+    </div>
+    <div>
+        <button type="submit" id="btn_board_valid" name="submit_btn_valid">Годная</button>
+        <button type="submit" id="btn_board_defect" name="submit_btn_defect">Брак</button>
+    </div>
+</form>
+
+{% endblock %}

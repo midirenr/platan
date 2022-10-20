@@ -1,0 +1,32 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'images/favicon.ico' %}">
+<title>Стенд упаковки</title>
+{% endblock %}
+
+{% block page_name %}<div align="center">Стенд упаковки</div>{% endblock %}
+
+{% block middle %}
+<form method="post">
+    {% csrf_token %}
+    <div align="center">
+        Отсканируйте серийный номер изделия
+        <div align="center" class="tooltip">
+        <img class="info-image" align="center" src="{%static '/images/info.png'%}" width="3%">
+        <span class="tooltiptext">
+        <img class="frame" width="350%" src="{%static '/images/sticker_1.jpg'%}">
+        </span>
+        </div>
+    </div>
+    <div id="board-serial-number-container">
+        {{ form.device_serial_number }}
+        <div align="left" class="errors" id="device-serial-number-error">
+            {{ form.device_serial_number.errors.as_text }}
+        </div>
+    </div>
+    <button type="submit" id="btn_device_package" name="submit_btn">Начать</button>
+</form>
+
+{% endblock %}

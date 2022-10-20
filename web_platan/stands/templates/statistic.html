@@ -1,0 +1,38 @@
+{% extends "base_generic.html" %}
+
+{% block title %}
+{% load static %}
+<link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
+{% load static %}
+
+<title>Статистика</title>
+{% endblock %}
+
+{% block page_name %}<div align="center">Статистика</div>{% endblock %}
+
+{% block middle %}
+<form method="post" id="generateSerialNumbers" data-modifications-url="{% url 'ajax_load_modifications' %}">
+    {% csrf_token %}
+    <div class="generate-serial-numbers-label">Стенд</div>
+    {{ form.stand }}
+    <div class="generate-serial-numbers-label">Время</div>
+    {{ form.date_time }}
+    <br>
+    <br>
+    <div class="generate-serial-numbers-label"><button type="submit" id="generate-serial-numbers-button" class="save btn btn-default" name="submit_btn">Поиск</button></div></form>
+    <br>
+{% if history %}
+<table bgcolor=#6767e1 border="1" width="80%">
+<caption >Статистика</caption>
+    <br>
+    <tr>
+    <th>id</th>
+    <th>Сообщение</th>
+    <th>Дата/Время</th>
+    </tr>
+    {% for data in history %}
+    <tr><td>{{ data.0 }}</td><td>{{ data.1 }}</td><td>{{ data.2 }}</td>
+    {% endfor %}
+</table>
+{% endif %}
+{% endblock %}

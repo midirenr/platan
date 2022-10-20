@@ -1,0 +1,14 @@
+{% extends "base_generic.html" %}
+
+{% block middle %}
+<p>Вы вышли из своего аккаунта!</p>
+<a href="{% url 'login'%}">Нажмите здесь чтобы авторизоваться повторно.</a>
+
+<script>
+    $(document).ready(function()
+    {
+        $('.login').remove();
+    });
+</script>
+
+{% endblock %}
