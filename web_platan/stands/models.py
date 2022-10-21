@@ -11,7 +11,7 @@ class Devices(models.Model):
     serial_num_package: упаковка
     serial_num_bp: блок питания
     serial_num_pki: ?
-    serila_num_router: маршрутизатор
+    serial_num_router: маршрутизатор
     ethaddr, eth1addr, eth2addr: mac-адреса
     diag: прохождение диагностики (True | False)
     date_time_pci: дата/время прохождения стенда ПсИ
@@ -35,6 +35,109 @@ class Devices(models.Model):
     class Meta:
         db_table = 'devices'
 
+    @classmethod
+    def create_device(cls, serial_num_board: str) -> list:
+        """
+        Функция создает новый девайс
+        (присваивает ему мак-адреса, плату, возвращает список [serial_num_board, мак-адреса])
+        """
+        new_device = cls()
+        new_device.save()
+        new_board = SerialNumBoard(serial_num_board=serial_num_board, device_id=new_device.id)
+        new_board.save()
+        new_device.serial_num_board_id = new_board.id
+        new_device.save()
+
+        snmac_list = [serial_num_board]
+        ethaddr_id_list = list()
+        macs = Macs.objects.filter(device_id="None")[:3]
+
+        for mac in macs:
+            snmac_list.append(mac.mac)
+            mac.device_id = new_device.id
+            mac.save()
+            ethaddr_id_list.append(mac.id)
+
+        new_device.ethaddr_id = ethaddr_id_list[0]
+        new_device.eth1addr_id = ethaddr_id_list[1]
+        new_device.eth2addr_id = ethaddr_id_list[2]
+        new_device.save()
+
+        return snmac_list
+
+    @classmethod
+    def update_diag(cls, serial_num):
+        """
+        Функция меняет значение diag девайса в положение True по серийному номеру платы
+        """
+        board_id = SerialNumBoard.objects.get(serial_num=serial_num)
+        cls.objects.get(serial_num_board_id=board_id.id).update(diag=True)
+
+    @classmethod
+    def check_diag(cls, serial_num):
+        """
+        Функция возвращает реузльтат диагностики девайса по серийному номеру платы
+        """
+        try:
+            board_id = SerialNumBoard.objects.get(serial_num=serial_num)
+            device = cls.objects.get(serial_num_board_id=board_id.id)
+            return device.diag
+        except cls.DoesNotExist:
+            raise f'Плата с серийным номером {serial_num} отсутствует в базе данных'
+
+    @classmethod
+    def write_serial_num_router(cls, serial_num_board, serial_num_router):
+        """
+        Функция создает новый роутер и записывает информацию в Devices
+        """
+        board_id = SerialNumBoard.objects.get(serial_num=serial_num_board)
+        device_id = cls.objects.get(serial_num_board_id=board_id.id)
+        new_router = SerialNumRouter(serial_num_router=serial_num_router, device_id=device_id.id)
+        new_router.save()
+        cls.objects.get(serial_num_board_id=board_id.id).update(serial_num_router_id=new_router.id)
+
+    @classmethod
+    def get_macs(cls, serial_num):
+        """
+        Функция возвращает мак-адреса девайса по серийному номеру роутера
+        """
+        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
+        device_id = cls.objects.get(serial_num_router_id=router_id)
+        macs = Macs.objects.filter(device_id=device_id)
+        mac_list = [mac.mac for mac in macs]
+        return mac_list
+
+    @classmethod
+    def update_date_time_pci(cls, serial_num):
+        """
+        Функция обновляет date_time_pci в записи по {serial_num}
+
+        router_id: id роутера, который мы получаем для поиска записи в таблице devices
+        """
+        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
+        cls.objects.get(serial_num_router_id=router_id.id).update(
+            date_time_pci=str(datetime.now())[:-7].replace(':', '-'))
+
+    @classmethod
+    def get_date_time_pci(cls, serial_num: str) -> str:
+        """
+        Функция возвращает время прохождения стенда ПсИ
+        """
+        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
+        device = cls.objects.get(serial_num_router_id=router_id.id)
+        return str(device.date_time_pci)
+
+    @classmethod
+    def update_date_time_package(cls, serial_num: str):
+        """
+        Функция обновляет date_time_package в записи по {serial_num}
+
+        router_id: id роутера, который мы получаем для поиска записи в таблице devices
+        """
+        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
+        cls.objects.get(serial_num_router_id=router_id.id).update(
+            date_time_package=str(datetime.now())[:-7].replace(':', '-'))
+
 
 class SerialNumPCB(models.Model):
     serial_num_pcb = models.CharField(max_length=14, unique=True)
@@ -45,33 +148,92 @@ class SerialNumPCB(models.Model):
 
 
 class SerialNumBoard(models.Model):
+    """
+    Модель таблици serial_num_board
+
+    serial_num_board: серийный номер платы
+    visual_inspection: результат прохождения везульного осмотра
+    visual_inspection_error_code: код ошибки при условии непрохождения визульного осмотра
+    device_id: девайс к котором стоит плата
+    """
     serial_num_board = models.CharField(max_length=14, unique=True)
+    visual_inspection_author = models.CharField(max_length=150)
     visual_inspection = models.BooleanField(default=None)
     visual_inspection_error_code = models.CharField(default=None, max_length=3)
+    visual_inspection_datetime = models.CharField(max_lenght=20)
     device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
 
     class Meta:
         db_table = 'serial_num_board'
 
     @classmethod
-    def set_defect_visual_inspection(cls, serial_num: str, error_code: str):
-        cls.objects.get(serial_num=serial_num).update(visual_inspection='False')
+    def check_sn(cls, serial_num_board):
+        try:
+            cls.objects.get(serial_num_router=serial_num_board)
+            return True
+        except cls.DoesNotExist:
+            return False
+
+    @classmethod
+    def get_board_count(cls, serial_num):
+        return cls.objects.all(serial_num_board=serial_num).count()
+
+    @classmethod
+    def create_board_serial_number(cls, serial_num: str, author: str, valid: bool):
+        """
+        Функция создает новую запись в таблице serial_num_board
+
+        serial_num: серийный номер новой платы
+        author: работник, который провел визульный осмотр
+        valid: результат проверки
+        """
+        new_board = cls(serial_num_board=serial_num,
+                        visual_inspection=valid,
+                        visual_inspection_author=author,
+                        visual_inspection_datetime=datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
+        new_board.save()
+
+    @classmethod
+    def set_visual_inspection(cls, serial_num: str, valid: bool, error_code='None'):
+        """
+        Функция устанавливает значения:
+        visual_inspection={valid}
+        visual_inspection_error_code={error_code} записи по serial_num
+
+        serial_num: серийный номер платы
+        valid: результат визуального осмотра
+        error_code: код ошибки
+        """
+        cls.objects.get(serial_num=serial_num).update(visual_inspection=valid)
         cls.objects.get(serial_num=serial_num).update(visual_inspection_error_code=error_code)
 
     @classmethod
-    def set_valid_visual_inspection(cls, serial_num: str):
-        cls.objects.get(serial_num=serial_num).update(visual_inspection='True')
-
-    @classmethod
-    def get_error_code(cls, serial_num: str):
+    def get_error_code(cls, serial_num: str) -> str:
+        """
+        Функция устанавливает значение visual_inspection_error_code='000' записи по serial_num
+        serial_num: серийный номер платы, у которой необходимо изменить visual_inspection_error_code
+        """
         return cls.objects.get(serial_num=serial_num)
 
-    # @classmethod
-    # def is_existence(cls, serial_num):
-    #     try:
-    #         cls.objects.get(serial_num=serial_num)
-    #         return True
-    #     except cls.
+    @classmethod
+    def update_error_code(cls, serial_num: str):
+        """
+        Функция устанавливает значение visual_inspection_error_code='000' записи по serial_num
+
+        serial_num: серийный номер платы, у которой необходимо изменить visual_inspection_error_code
+        """
+        cls.objects.get(serial_num=serial_num).update(visual_inspection_error_code='000')
+
+    @classmethod
+    def is_existence(cls, serial_num: str) -> bool:
+        """
+        Функция проверяет наличие {serial_num} в базе данных
+        """
+        try:
+            cls.objects.get(serial_num=serial_num)
+            return True
+        except cls.DoesNotExist:
+            return False
 
 
 class SerialNumCase(models.Model):
@@ -113,10 +275,18 @@ class SerialNumRouter(models.Model):
     class Meta:
         db_table = 'serial_num_router'
 
+    @classmethod
+    def check_sn(cls, serial_num_router):
+        try:
+            cls.objects.get(serial_num_router=serial_num_router)
+            return True
+        except cls.DoesNotExist:
+            return False
+
 
 class Macs(models.Model):
     mac = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', default="None", on_delete=models.CASCADE, unique=True,)
 
     class Meta:
         db_table = 'macs'
