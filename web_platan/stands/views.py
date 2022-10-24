@@ -1,20 +1,27 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
+from django.http import FileResponse
+import datetime
+
+
 from .forms import *
+from .models import *
+from .utils.generate_serial_number import *
 
 
 def index(request):
-    return render(
-        request,
-        'index.html',
-        context=
-        {
-
-        },
-    )
+    return render(request, 'index.html', context={})
 
 
 def history_page(request):
     form = HistoryForm()
+    if request.method == "POST":
+        form = HistoryForm(data=request.POST)
+
+        if form.is_valid():
+            serial_number = request.POST.get('serial_number')
+            history = History.get_history(serial_number)
+            return render(request, 'history.html', context={'history': history, 'form': form})
+
     return render(request, 'history.html', context={'form': form})
 
 
@@ -25,7 +32,23 @@ def statistic_page(request):
 
 def generate_serial_numbers_page(request):
     form = GenerateSerialNumbersForm()
-    return render(request, 'generate_serial_numbers.html', context={'form': form})
+
+    if request.method == 'POST':
+        form = GenerateSerialNumbersForm(data=request.POST)
+
+        if form.is_valid():
+            device_type = form.cleaned_data['device_type']
+            modification_type = form.cleaned_data['modification_type']
+            detail_type = form.cleaned_data['detail_type']
+            place_of_production = form.cleaned_data['place_of_production']
+            count = form.cleaned_data['count']
+            current_time = str(datetime.datetime.now())[:-7].replace(' ', '_').replace(':', '-')
+            generate_serial_number(device_type, modification_type, detail_type, place_of_production, count, current_time)
+            filename1 = f'stands/storage/userfiles/SerialNumbers/{device_type}/{modification_type}/{detail_type}' \
+                        f'/serial_number_for_{modification_type}/{detail_type}({current_time}).txt'
+            return FileResponse(open(filename1, 'rb'), as_attachment=True)
+    return render(
+        request, 'generate_serial_numbers.html', context={'form': form})
 
 
 def stand_board_case_page(request):
@@ -40,6 +63,25 @@ def stand_package_page(request):
 
 def stand_visual_inspection_page(request):
     form = StandVisualInspection()
+
+    if 'submit_btn_valid' in request.POST and request.method == 'POST':
+        form = StandVisualInspection(request.POST)
+
+        if form.is_valid():
+            SerialNumBoard.create_board_serial_number(form.cleaned_data['board_serial_number'], request.user, valid=True)
+            #set_statistic('Стенд визульного осмотра(Годная)', str(datetime.now())[:-7].replace(':', '-'))
+
+            return redirect('stand-visual-inspection')
+
+    if 'submit_btn_defect' in request.POST and request.method == 'POST':
+        form = StandVisualInspection(request.POST)
+
+        if form.is_valid():
+            SerialNumBoard.create_board_serial_number(form.cleaned_data['board_serial_number'], request.user, valid=True)
+            #set_statistic('Стенд визульного осмотра(Брак)', str(datetime.now())[:-7].replace(':', '-'))
+
+            return redirect('stand-visual-inspection')
+
     return render(request, 'stand_visual_inspection.html', context={'form': form})
 
 
@@ -48,18 +90,20 @@ def stand_diagnostic_page(request):
     return render(request, 'stand-diagnostic.html', context={'form': form})
 
 
+def pci_load_output(request):
+    return render(request, 'ajax/pci_output.html', context={})
+
+
+def diagnostic_load_output(request):
+    return render(request, 'ajax/diagnostic_output.html', context={})
+
+
 def stand_pci_page(request):
     form = StandPCI()
     return render(request, 'stand-pci.html', context={'form': form})
 
 
-def pci_load_output(request):
-    pass
-
-
-def diagnostic_load_output(request):
-    pass
-
-
 def load_modifications(request):
-    pass
+    device_type_id = request.GET.get('device_type_id')
+    modification_type = ModificationType.objects.filter(device_type_id=device_type_id).all()
+    return render(request, 'ajax/modification_dropdown_list_options.html', context={'modifications': modification_type})

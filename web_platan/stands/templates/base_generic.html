@@ -64,12 +64,15 @@
                         {% else %}
                             <li><a href="{% url 'stand-board-case' %}">Стенд сборки</a></li>
                         {% endif %}
-
-                        {% if request.path == '/stand-pci/' %}
-                            <li><a class="active" href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
-                        {% else %}
-                            <li><a href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
-                        {% endif %}
+                        {%for group in request.user.groups.all%}
+                            {% if group.name == "Стенд ПсИ" %}
+                                {% if request.path == '/stand-pci/' %}
+                                    <li><a class="active" href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
+                                {% else %}
+                                    <li><a href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
 
                         {% if request.path == '/stand-package/' %}
                             <li><a class="active" href="{% url 'stand-package' %}">Стенд упаковки</a></li>
@@ -83,11 +86,12 @@
                         {% else %}
                             <li><a href="{% url 'history' %}">История девайса</a></li>
                         {% endif %}
-                        {% if request.path == '/history/' %}
+                        {% endif %}
+
+                        {% if request.path == '/statistic/' %}
                             <li><a class="active" href="{% url 'statistic' %}">Статистика</a></li>
                         {% else %}
                             <li><a href="{% url 'statistic' %}">Статистика</a></li>
-                        {% endif %}
                         {% endif %}
                     </ul>
                 </form>

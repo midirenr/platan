@@ -1,7 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from .utils.device_configurations.config import Device
 
 from .models import *
 
@@ -11,6 +10,13 @@ class HistoryForm(forms.Form):
 
     def clean(self):
         super(HistoryForm, self).clean()
+        serial_number = self.cleaned_data['serial_number']
+
+        if not History.check_history(serial_number):
+            self.errors['serial_number'] = self.error_class([f'Серийный номер устройства {serial_number}'
+                                                             f'отсутствует в базе данных'])
+            print("NOt valid")
+            return self.cleaned_data
 
         return self.cleaned_data
 
@@ -31,20 +37,19 @@ class StatisticForm(forms.Form):
         return self.cleaned_data
 
 
-class GenerateSerialNumbersForm(forms.Form):
-    device_type_choices = ((j, i) for i, j in Device.device_dictionary.items())
-    device_type = forms.ChoiceField(choices=device_type_choices)
-    modification_type_choices = ((j, i) for i, j in Device.modification_dictionary.items())
-    modification_type = forms.ChoiceField(choices=modification_type_choices)
-    detail_type_choices = ((j, i) for i, j in Device.detail_dictionary.items())
-    detail_type = forms.ChoiceField(choices=detail_type_choices)
-    place_of_production_choices = ((j, i) for i, j in Device.place_dictionary.items())
-    place_of_production = forms.ChoiceField(choices=place_of_production_choices)
-    count = forms.CharField(max_length=14)
+class GenerateSerialNumbersForm(forms.ModelForm):
 
-    def clean(self):
-        super(GenerateSerialNumbersForm, self).clean()
-        return self.cleaned_data
+    class Meta:
+        model = GenerateSerialNumbers
+        fields = '__all__'
+
+        labels = {
+            'device_type': 'Тип устройства',
+            'modification_type': 'Тип модификации',
+            'detail_type': 'Тип детали',
+            'place_of_production': 'Место производства',
+            'count': 'Количество',
+        }
 
 
 class ChainBoardCase(forms.Form):
@@ -218,21 +223,25 @@ class StandPCI(forms.Form):
 
     pci_device_type = forms.ChoiceField(choices=CHOICES_TYPE)
     router_count = forms.ChoiceField(choices=CHOICES_COUNT)
-    router_serial_number_1 = forms.CharField(widget=forms.TextInput(), max_length=14)
+    router_serial_number_1 = forms.CharField(widget=forms.TextInput(), min_length=14, max_length=14)
     router_serial_number_2 = forms.CharField(widget=forms.TextInput(
         attrs={
+            'minlength': '14',
             'maxlength': '14',
         }), required=False)
     router_serial_number_3 = forms.CharField(widget=forms.TextInput(
         attrs={
+            'minlength': '14',
             'maxlength': '14',
         }), required=False)
     router_serial_number_4 = forms.CharField(widget=forms.TextInput(
         attrs={
+            'minlength': '14',
             'maxlength': '14',
         }), required=False)
     router_serial_number_5 = forms.CharField(widget=forms.TextInput(
         attrs={
+            'minlength': '14',
             'maxlength': '14',
         }), required=False)
 

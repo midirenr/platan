@@ -159,9 +159,9 @@ class SerialNumBoard(models.Model):
     serial_num_board = models.CharField(max_length=14, unique=True)
     visual_inspection_author = models.CharField(max_length=150)
     visual_inspection = models.BooleanField(default=None)
-    visual_inspection_error_code = models.CharField(default=None, max_length=3)
-    visual_inspection_datetime = models.CharField(max_lenght=20)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    visual_inspection_error_code = models.CharField(default='', max_length=3)
+    visual_inspection_datetime = models.CharField(max_length=20)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True, null=True)
 
     class Meta:
         db_table = 'serial_num_board'
@@ -176,7 +176,7 @@ class SerialNumBoard(models.Model):
 
     @classmethod
     def get_board_count(cls, serial_num):
-        return cls.objects.all(serial_num_board=serial_num).count()
+        return cls.objects.filter(serial_num_board=serial_num).count()
 
     @classmethod
     def create_board_serial_number(cls, serial_num: str, author: str, valid: bool):
@@ -192,6 +192,7 @@ class SerialNumBoard(models.Model):
                         visual_inspection_author=author,
                         visual_inspection_datetime=datetime.now().strftime('%d-%m-%Y %H:%M:%S'))
         new_board.save()
+
 
     @classmethod
     def set_visual_inspection(cls, serial_num: str, valid: bool, error_code='None'):
@@ -371,7 +372,14 @@ class History(models.Model):
         db_table = 'history'
 
     @classmethod
-    def get_gistory(cls, serial_num: str) -> list:
+    def check_history(cls, serial_num):
+        if cls.objects.filter(device_serial_num=serial_num).exists():
+            return True
+        else:
+            return False
+
+    @classmethod
+    def get_history(cls, serial_num: str) -> list:
         """
         Функция возвращает историю устройства по серийному номеру
 
@@ -379,3 +387,56 @@ class History(models.Model):
         """
 
         return cls.objects.filter(device_serial_num=serial_num)
+
+
+class GenerateSerialNumbers(models.Model):
+    device_type = models.ForeignKey('DeviceType', on_delete=models.CASCADE)
+    modification_type = models.ForeignKey('ModificationType', on_delete=models.CASCADE)
+    detail_type = models.ForeignKey('DetailType', on_delete=models.CASCADE)
+    place_of_production = models.ForeignKey('PlaceOfProduction', on_delete=models.CASCADE)
+    count = models.IntegerField(default=1)
+
+
+class DeviceType(models.Model):
+    class Meta:
+        verbose_name = 'Тип устройства'
+        verbose_name_plural = 'Тип устройства'
+
+    name = models.CharField(max_length=30)
+
+    def __str__(self):
+        return self.name
+
+
+class ModificationType(models.Model):
+    class Meta:
+        verbose_name = 'Тип модификации'
+        verbose_name_plural = 'Тип модификации'
+
+    name = models.CharField(max_length=40)
+    device_type = models.ForeignKey(DeviceType, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.name
+
+
+class DetailType(models.Model):
+    class Meta:
+        verbose_name = 'Тип изделия'
+        verbose_name_plural = 'Тип изделия'
+
+    name = models.CharField(max_length=80)
+
+    def __str__(self):
+        return self.name
+
+
+class PlaceOfProduction(models.Model):
+    class Meta:
+        verbose_name = 'Место производства'
+        verbose_name_plural = 'Место производства'
+
+    name = models.CharField(max_length=20)
+
+    def __str__(self):
+        return self.name
