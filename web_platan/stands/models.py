@@ -320,7 +320,7 @@ class Statistic(models.Model):
         note.save()
 
     @classmethod
-    def get_statistic(cls, stand: str, date_time: str) -> list:
+    def get_statistic(cls, date_time: str) -> list:
         """
         Функция возвращает те записи из таблицы statistic, которые соответсвуют переданным параметрам
 
@@ -330,24 +330,24 @@ class Statistic(models.Model):
         list_statistic: список записей соответсвующих переданному параметру stand
         """
         returnable_list = list()
-        list_statistics = cls.objects.filter(stand=stand)
+        list_statistics = cls.objects.all()
 
-        if date_time == "all time":
-            return cls.objects.filter(stand=stand)
+        if date_time == 'all time':
+            return cls.objects.all()
 
-        if date_time == "last 3 mouth":
+        if date_time == 'last 3 mouth':
             now = datetime.now().date()
             for i in list_statistics:
                 if int((now - i.date_time.date()).days) <= 91:
                     returnable_list.append(i)
 
-        if date_time == "last 7 days":
+        if date_time == 'last week':
             now = datetime.now().date()
             for i in list_statistics:
                 if int((now - i.date_time.date()).days) <= 7:
                     returnable_list.append(i)
 
-        if date_time == "last 24 hours":
+        if date_time == 'last 24 hour':
             now = datetime.now().date()
             for i in list_statistics:
                 if int((now - i.date_time.date()).days)*24 <= 24:

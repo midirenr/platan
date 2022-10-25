@@ -22,18 +22,12 @@ class HistoryForm(forms.Form):
 
 
 class StatisticForm(forms.Form):
-    stand = forms.ChoiceField(
-        choices=(('All', 'Все'), ('stand_visual_inspection', 'Стэнд визуального осмотра'),
-                 ('stand_diagnostic', 'Стенд диагностики'), ('stand_pci', 'Стэнд ПСИ'),
-                 ('stand_package', 'Стэнд упаковки'), ('stand_board_case', 'Стэнд сборки')))
     date_time = forms.ChoiceField(
         choices=(('all time', 'За все время'), ('last 3 mouth', 'Последние 3 месяца'),
                  ('last week', 'Последние 7 дней'), ('last 24 hour', 'Последние 24 часа')))
 
     def clean(self):
         super(StatisticForm, self).clean()
-        stand = self.cleaned_data['stand']
-        date_time = self.cleaned_data['date_time']
         return self.cleaned_data
 
 

@@ -13,26 +13,23 @@
 {% block middle %}
 <form method="post" id="generateSerialNumbers" data-modifications-url="{% url 'ajax_load_modifications' %}">
     {% csrf_token %}
-    <div class="generate-serial-numbers-label">Стенд</div>
-    {{ form.stand }}
     <div class="generate-serial-numbers-label">Время</div>
     {{ form.date_time }}
     <br>
     <br>
     <div class="generate-serial-numbers-label"><button type="submit" id="generate-serial-numbers-button" class="save btn btn-default" name="submit_btn">Поиск</button></div></form>
     <br>
-{% if history %}
+{% if statistic %}
 <table bgcolor=#6767e1 border="1" width="80%">
 <caption >Статистика</caption>
-    <br>
-    <tr>
-    <th>id</th>
-    <th>Сообщение</th>
-    <th>Дата/Время</th>
-    </tr>
-    {% for data in history %}
-    <tr><td>{{ data.0 }}</td><td>{{ data.1 }}</td><td>{{ data.2 }}</td>
-    {% endfor %}
+    <th>Всего</th>
+    <th>Стенд визульного осмотра</th>
+    <th>Стенд диагностики</th>
+    <th>Стенд сборки</th>
+    <th>Стенд ПСИ</th>
+    <th>Стенд упаковки</th>
+
+    <tr><td>{{ statistic.All }}</td><td>{{ statistic.stand_visual_inspection }}</td><td>{{ statistic.stand_diagnostic }}</td><td>{{ statistic.stand_board_case }}</td><td>{{ statistic.stand_PCI }}</td><td>{{ statistic.stand_package }}</td>
 </table>
 {% endif %}
 {% endblock %}
