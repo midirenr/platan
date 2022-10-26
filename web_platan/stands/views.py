@@ -6,6 +6,7 @@ import datetime
 from .forms import *
 from .models import *
 from .utils.generate_serial_number import *
+from .utils.package import *
 
 
 def index(request):
@@ -84,6 +85,13 @@ def stand_board_case_page(request):
 
 def stand_package_page(request):
     form = StandPackage()
+    if 'submit_btn' in request.POST and request.method == 'POST':
+        form = StandPackage(request.POST)
+
+        if form.is_valid():
+            stickers = start_package_process(form.cleaned_data['device_serial_number'])
+
+            return render(request, 'stand_package.html', context={'form': form, 'stickers': stickers})
     return render(request, 'stand_package.html', context={'form': form})
 
 
