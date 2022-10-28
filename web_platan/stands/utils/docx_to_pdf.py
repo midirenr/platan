@@ -28,8 +28,8 @@ def fill_the_doc(number, serial_number, modification, control_test_0, control_te
 
 
 def convert_docx_to_pdf(input_docx):
-    # libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
-    libre_office = r'/usr/bin/libreoffice'
+    libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
+    #libre_office = r'/usr/bin/libreoffice'
     process1 = subprocess.Popen(
         [libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'protocol_after_psi', input_docx])
     process1.communicate()
@@ -38,10 +38,10 @@ def convert_docx_to_pdf(input_docx):
 
 def print_sticker(serial_number, modification):
     img = qrcode.make(serial_number)
-    qr_name = f'stickers/{serial_number}.png'
+    qr_name = f'stands/storage/userfiles/stickers/{serial_number}.png'
     img.save(qr_name)
 
-    document = MailMerge('stickers/sticker_template.docx')
+    document = MailMerge('stands/storage/userfiles/stickers/sticker_template.docx')
 
     document.merge(
         Protocol_Date='{:%d.%m.%Y}'.format(date.today()),
@@ -59,27 +59,27 @@ def print_sticker(serial_number, modification):
     r.add_picture(f'{qr_name}', width=Inches(.9), height=Inches(.9))
     doc.save(f'{input_docx}')
     os.remove(f'{qr_name}')
-    return (convert_docx_to_pdf_package(input_docx))
+    return convert_docx_to_pdf_package(input_docx)
 
 
 def convert_docx_to_pdf_package(input_docx):
-    # libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
-    libre_office = r'/usr/bin/libreoffice'
-    process2 = subprocess.Popen([libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'stickers', input_docx])
+    libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
+    #libre_office = r'/usr/bin/libreoffice'
+    process2 = subprocess.Popen([libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'stands/storage/userfiles/stickers', input_docx])
     process2.communicate()
     os.remove(f'{input_docx}')
-    input_file = f'stickers/{input_docx}.pdf'
-    output_file = f'stickers/{input_docx}_print.pdf'
+    input_file = f'stands/storage/userfiles/stickers/{input_docx}.pdf'
+    output_file = f'stands/storage/userfiles/stickers/{input_docx}_print.pdf'
     file_handle = fitz.open(input_file)
     pages_list = [0]
     file_handle.select(pages_list)
     file_handle.save(output_file)
-    os.remove(input_file)
-    return(output_file)
+    #os.remove(input_file)
+    return f"/media/{input_docx}_print.pdf"
 
 
 def print_sticker_passport(serial_number):
-    document = MailMerge('stickers/passport_template.docx')
+    document = MailMerge('stands/storage/userfiles/stickers/passport_template.docx')
 
     document.merge(
         Serial_Num=serial_number,
@@ -88,22 +88,23 @@ def print_sticker_passport(serial_number):
     input_docx_passport = f'{serial_number}-{date_today}-passport'
     document.write(input_docx_passport)
 
-    return(convert_docx_to_pdf_package(input_docx_passport))
+    return convert_docx_to_pdf_package(input_docx_passport)
 
 
 def convert_docx_to_pdf_passport(input_docx_passport):
-    # libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
-    libre_office = r'/usr/bin/libreoffice'
+    libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
+    #libre_office = r'/usr/bin/libreoffice'
     process3 = subprocess.Popen(
-        [libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'stickers', input_docx_passport])
+        [libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'stands/storage/userfiles/stickers', input_docx_passport])
     process3.communicate()
     os.remove(f'{input_docx_passport}')
-    input_file = f'stickers/{input_docx_passport}.pdf'
-    output_file = f'stickers/{input_docx_passport}_print.pdf'
+    input_file = f'stands/storage/userfiles/stickers/{input_docx_passport}.pdf'
+    output_file = f'stands/storage/userfiles/stickers/{input_docx_passport}_print.pdf'
     file_handle = fitz.open(input_file)
     pages_list = [0]
     file_handle.select(pages_list)
     file_handle.save(output_file)
-    os.remove(input_file)
+    #os.remove(input_file)
 
-    return (output_file)
+    return f"/media/{input_docx_passport}_print.pdf"
+

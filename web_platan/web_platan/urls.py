@@ -10,4 +10,6 @@ urlpatterns = [
     path('', include('stands.urls')),
     path('', include('django.contrib.auth.urls')),
 
-] + static(settings.STATIC_URL, document_root=settings.STATIC_URL) + static(settings.IMAGES_URL, document_root=settings.IMAGES_URL)
+]
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_URL) + static(settings.IMAGES_URL, document_root=settings.IMAGES_URL)
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

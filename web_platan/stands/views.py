@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import FileResponse
-import datetime
 
 
 from .forms import *
 from .models import *
 from .utils.generate_serial_number import *
 from .utils.package import *
+from .utils import diagnostic
+from .utils import PCI
+from .utils.get_host_ip import *
 
 
 def index(request):
@@ -80,16 +82,33 @@ def generate_serial_numbers_page(request):
 
 def stand_board_case_page(request):
     form = ChainBoardCase()
+
+    if request.method == 'POST':
+        form = ChainBoardCase(request.POST)
+
+        if form.is_valid():
+            form = ChainBoardCase(request.POST)
+            Devices.write_serial_num_router(
+                                            form.cleaned_data['board_serial_number'],
+                                            form.cleaned_data['case_serial_number'])
+            manufacturer = form.cleaned_data['board_serial_number'],
+
+            Statistic.new_note('Стенд сборки')
+            History.new_note(form.cleaned_data['device_serial_number'], msg="СТЕНД СБОРКИ, стенд пройден успешно")
+            return redirect('stand-board-case')
+
     return render(request, 'stand_board_case.html', context={'form': form})
 
 
 def stand_package_page(request):
     form = StandPackage()
-    if 'submit_btn' in request.POST and request.method == 'POST':
+    if request.method == 'POST':
         form = StandPackage(request.POST)
 
         if form.is_valid():
             stickers = start_package_process(form.cleaned_data['device_serial_number'])
+            Statistic.new_note('Стенд упаковки')
+            History.new_note(form.cleaned_data['device_serial_number'], msg="СТЕНД УПАКОВКИ, стенд пройден успешно")
 
             return render(request, 'stand_package.html', context={'form': form, 'stickers': stickers})
     return render(request, 'stand_package.html', context={'form': form})
@@ -106,6 +125,8 @@ def stand_visual_inspection_page(request):
                 form.cleaned_data['board_serial_number'],
                 request.user, valid=True)
             Statistic.new_note('Стенд визульного осмотра')
+            History.new_note(form.cleaned_data['board_serial_number'],
+                             msg="СТЕНД ВИЗУЛЬНОГО ОСМОТРА, стенд пройден успешно")
 
             return redirect('stand-visual-inspection')
 
@@ -115,7 +136,9 @@ def stand_visual_inspection_page(request):
         if form.is_valid():
             SerialNumBoard.create_board_serial_number(
                 form.cleaned_data['board_serial_number'],
-                request.user, valid=True)
+                request.user, valid=False)
+            History.new_note(form.cleaned_data['board_serial_number'],
+                             msg="СТЕНД ВИЗУЛЬНОГО ОСМОТРА, стенд не пройден")
 
             return redirect('stand-visual-inspection')
 
@@ -124,11 +147,82 @@ def stand_visual_inspection_page(request):
 
 def stand_diagnostic_page(request):
     form = StandDiagnostic()
+    if request.method == 'POST':
+        form = StandDiagnostic(request.POST)
+        if form.is_valid():
+            board_count = form.cleaned_data['board_count']
+            board_serial_number = form.cleaned_data['board_serial_number_1']
+            os_modification = 'SP'
+            modification_split = board_serial_number[2:4]
+            modification_serial_number_os = modification_split + os_modification
+            modification_dictionary = {
+                '20SP': 'КРПГ.465614.001',
+                '31SP': 'КРПГ.465614.001-02',
+                '30SP': 'КРПГ.465614.001-03',
+                '10SP': 'КРПГ.465614.001-05',
+                '41SP': 'КРПГ.465614.001-06',
+                '40SP': 'КРПГ.465614.001-07',
+                '32SP': 'КРПГ.465614.001-09',
+                '33SP': 'КРПГ.465614.001-10',
+                '34SP': 'КРПГ.465614.001-11',
+                '35SP': 'КРПГ.465614.001-12',
+                '42SP': 'КРПГ.465614.001-14',
+                '43SP': 'КРПГ.465614.001-15',
+                '44SP': 'КРПГ.465614.001-16',
+                '45SP': 'КРПГ.465614.001-17',
+            }
+            modification = modification_dictionary.get(modification_serial_number_os)
+            board_serial_number_list = [form.cleaned_data['board_serial_number_1'],
+                                        form.cleaned_data['board_serial_number_2'],
+                                        form.cleaned_data['board_serial_number_3'],
+                                        form.cleaned_data['board_serial_number_4'],
+                                        form.cleaned_data['board_serial_number_5']]
+
+            ip = get_ip(request)
+            diagnostic.run(board_count, modification, board_serial_number_list, ip)
+            return redirect('stand-diagnostic')
     return render(request, 'stand-diagnostic.html', context={'form': form})
 
 
 def stand_pci_page(request):
     form = StandPCI()
+    if 'pci_start' in request.POST and request.method == 'POST':
+        form = StandPCI(request.POST)
+
+        if form.is_valid():
+            router_count = form.cleaned_data['router_count']
+            router_serial_number = form.cleaned_data['router_serial_number_1']
+            os_modification = 'SP'
+            modification_split = router_serial_number[2:4]
+            modification_serial_number_os = modification_split + os_modification
+
+            modification_dictionary = {
+                '20SP': 'КРПГ.465614.001',
+                '31SP': 'КРПГ.465614.001-02',
+                '30SP': 'КРПГ.465614.001-03',
+                '10SP': 'КРПГ.465614.001-05',
+                '41SP': 'КРПГ.465614.001-06',
+                '40SP': 'КРПГ.465614.001-07',
+                '32SP': 'КРПГ.465614.001-09',
+                '33SP': 'КРПГ.465614.001-10',
+                '34SP': 'КРПГ.465614.001-11',
+                '35SP': 'КРПГ.465614.001-12',
+                '42SP': 'КРПГ.465614.001-14',
+                '43SP': 'КРПГ.465614.001-15',
+                '44SP': 'КРПГ.465614.001-16',
+                '45SP': 'КРПГ.465614.001-17',
+            }
+            modification = modification_dictionary.get(modification_serial_number_os)
+
+            router_serial_number_list = [form.cleaned_data['router_serial_number_1'],
+                                        form.cleaned_data['router_serial_number_2'],
+                                        form.cleaned_data['router_serial_number_3'],
+                                        form.cleaned_data['router_serial_number_4'],
+                                        form.cleaned_data['router_serial_number_5']]
+            ip = get_ip(request)
+            PCI.run(router_count, modification, router_serial_number_list, ip)
+            return redirect('stand-pci')
+
     return render(request, 'stand-pci.html', context={'form': form})
 
 

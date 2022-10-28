@@ -74,6 +74,14 @@
                             {% endif %}
                         {% endfor %}
 
+                        {% if user.is_superuser %}
+                            {% if request.path == '/stand-pci/' %}
+                                <li><a class="active" href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
+                            {% else %}
+                                <li><a href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
+                            {% endif %}
+                        {% endif %}
+
                         {% if request.path == '/stand-package/' %}
                             <li><a class="active" href="{% url 'stand-package' %}">Стенд упаковки</a></li>
                         {% else %}
@@ -93,6 +101,11 @@
                         {% else %}
                             <li><a href="{% url 'statistic' %}">Статистика</a></li>
                         {% endif %}
+                        <br>
+                        {% if user.is_superuser %}
+                           <li><a target="_blank" href="/admin">Админка</a></li>
+                        {% endif %}
+
                     </ul>
                 </form>
             </div>

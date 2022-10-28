@@ -25,6 +25,4 @@ def start_package_process(serial_number):
     stickers = [print_sticker(serial_number, modification),
                 print_sticker_passport(serial_number)]
 
-    print(stickers)
-
     return stickers

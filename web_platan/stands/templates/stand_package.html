@@ -28,8 +28,11 @@
     </div>
     <button type="submit" id="btn_device_package" name="submit_btn">Начать</button>
 </form>
-{{if stickers}}
-    <embed src="{{ stickers }}" width="800px" height="2100px" />
-{{endif}}
+{% if stickers %}
+<script>
+    window.open("{{ stickers.0 }}")
+    window.open("{{ stickers.1 }}")
+</script>
+{% endif %}
 
 {% endblock %}

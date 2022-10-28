@@ -18,16 +18,16 @@ class Devices(models.Model):
     date_time_package: дата/время упаковки
     """
 
-    serial_num_pcb_id = models.OneToOneField('SerialNumPCB', on_delete=models.CASCADE, unique=True)
-    serial_num_board_id = models.OneToOneField('SerialNumBoard', on_delete=models.CASCADE, unique=True)
-    serial_num_case_id = models.OneToOneField('SerialNumCase', on_delete=models.CASCADE, unique=True)
-    serial_num_package_id = models.OneToOneField('SerialNumPackage', on_delete=models.CASCADE, unique=True)
-    serial_num_bp_id = models.OneToOneField('SerialNumBP', on_delete=models.CASCADE, unique=True)
-    serial_num_pki_id = models.OneToOneField('SerialNumPKI', on_delete=models.CASCADE, unique=True)
-    serial_num_router_id = models.OneToOneField('SerialNumRouter', on_delete=models.CASCADE, unique=True)
-    ethaddr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac1')
-    eth1addr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac2')
-    eth2addr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac3')
+    serial_num_pcb_id = models.OneToOneField('SerialNumPCB', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    serial_num_board_id = models.OneToOneField('SerialNumBoard', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    serial_num_case_id = models.OneToOneField('SerialNumCase', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    serial_num_package_id = models.OneToOneField('SerialNumPackage', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    serial_num_bp_id = models.OneToOneField('SerialNumBP', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    serial_num_pki_id = models.OneToOneField('SerialNumPKI', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    serial_num_router_id = models.OneToOneField('SerialNumRouter', on_delete=models.CASCADE, unique=True, null=True, blank=True)
+    ethaddr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac1', null=True, blank=True)
+    eth1addr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac2', null=True, blank=True)
+    eth2addr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac3', null=True, blank=True)
     diag = models.BooleanField(default=False)
     date_time_pci = models.CharField(default='No', max_length=150)
     date_time_package = models.CharField(default='No', max_length=150)
@@ -123,7 +123,7 @@ class Devices(models.Model):
         """
         Функция возвращает время прохождения стенда ПсИ
         """
-        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
+        router_id = SerialNumRouter.objects.get(serial_num_router=serial_num)
         device = cls.objects.get(serial_num_router_id=router_id.id)
         return str(device.date_time_pci)
 
@@ -134,9 +134,10 @@ class Devices(models.Model):
 
         router_id: id роутера, который мы получаем для поиска записи в таблице devices
         """
-        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
-        cls.objects.get(serial_num_router_id=router_id.id).update(
-            date_time_package=str(datetime.now())[:-7].replace(':', '-'))
+        router_id = SerialNumRouter.objects.get(serial_num_router=serial_num)
+        device = cls.objects.get(serial_num_router_id=router_id.id)
+        device.date_time_package = str(datetime.now())[:-7].replace(':', '-')
+        device.save()
 
 
 class SerialNumPCB(models.Model):
@@ -157,10 +158,10 @@ class SerialNumBoard(models.Model):
     device_id: девайс к котором стоит плата
     """
     serial_num_board = models.CharField(max_length=14, unique=True)
-    visual_inspection_author = models.CharField(max_length=150)
-    visual_inspection = models.BooleanField(default=None)
+    visual_inspection_author = models.CharField(max_length=150, default='None')
+    visual_inspection = models.BooleanField(default=False)
     visual_inspection_error_code = models.CharField(default='', max_length=3)
-    visual_inspection_datetime = models.CharField(max_length=20)
+    visual_inspection_datetime = models.CharField(max_length=20, null=True)
     device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True, null=True)
 
     class Meta:
@@ -171,7 +172,7 @@ class SerialNumBoard(models.Model):
         try:
             cls.objects.get(serial_num_router=serial_num_board)
             return True
-        except cls.DoesNotExist:
+        except Exception:
             return False
 
     @classmethod
@@ -271,7 +272,7 @@ class SerialNumPKI(models.Model):
 
 class SerialNumRouter(models.Model):
     serial_num_router = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True, blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_router'
@@ -300,6 +301,7 @@ class Statistic(models.Model):
     stand: название стенда, на котором проводилась операция
     date_time: время проведения операции
     """
+    manufacturer = models.CharField(max_length=150)
     stand = models.CharField(max_length=150)
     date_time = models.DateTimeField()
 
@@ -370,6 +372,11 @@ class History(models.Model):
 
     class Meta:
         db_table = 'history'
+
+    @classmethod
+    def new_note(cls, serial_number, msg):
+        new_note = cls(device_serial_num=serial_number, message=msg, date_time=datetime.now().date())
+        new_note.save()
 
     @classmethod
     def check_history(cls, serial_num):

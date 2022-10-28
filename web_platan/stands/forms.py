@@ -15,7 +15,6 @@ class HistoryForm(forms.Form):
         if not History.check_history(serial_number):
             self.errors['serial_number'] = self.error_class([f'Серийный номер устройства {serial_number}'
                                                              f'отсутствует в базе данных'])
-            print("NOt valid")
             return self.cleaned_data
 
         return self.cleaned_data
