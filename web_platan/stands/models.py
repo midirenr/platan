@@ -301,7 +301,7 @@ class Statistic(models.Model):
     stand: название стенда, на котором проводилась операция
     date_time: время проведения операции
     """
-    manufacturer = models.CharField(max_length=150)
+    manufacturer = models.CharField(max_length=50, default=None)
     stand = models.CharField(max_length=150)
     date_time = models.DateTimeField()
 
@@ -309,16 +309,28 @@ class Statistic(models.Model):
         db_table = 'statistic'
 
     @classmethod
-    def new_note(cls, stand: str):
+    def new_note(cls, serial_num: str, stand: str):
         """
         Функция создает новую запись в таблице Statistic
 
         stand: стенд на котором проходила операция
         date_time: текущее дата и время
         """
+        if serial_num[6:8] == "01":
+            manufacturer = "Исток"
+        if serial_num[6:8] == "02":
+            manufacturer = "EMS Expert"
+        if serial_num[6:8] == "03":
+            manufacturer = "ТМИ"
+        if serial_num[6:8] == "04":
+            manufacturer = "Альт Мастер"
+        if serial_num[6:8] == "05":
+            manufacturer = "ТСИ"
+        if serial_num[6:8] == "06":
+            manufacturer = "Резанит"
 
         date_time = datetime.now().date()
-        note = cls(stand=stand, date_time=date_time)
+        note = cls(manufacturer=manufacturer, stand=stand, date_time=date_time)
         note.save()
 
     @classmethod

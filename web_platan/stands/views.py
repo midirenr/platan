@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from django.http import FileResponse
-
+from datetime import datetime
 
 from .forms import *
 from .models import *
@@ -34,26 +34,44 @@ def statistic_page(request):
         form = StatisticForm(data=request.POST)
         date_time = request.POST.get('date_time')
         statistic = Statistic.get_statistic(date_time)
-        returnable_statistic = {'All': 0,
-                                'stand_visual_inspection': 0,
-                                'stand_diagnostic': 0,
-                                'stand_board_case': 0,
-                                'stand_PCI': 0,
-                                'stand_package': 0}
-        for stat in statistic:
-            returnable_statistic['All'] = returnable_statistic['All'] + 1
-            if stat.stand == "Стенд визуального осмотра":
-                returnable_statistic['stand_visual_inspection'] = returnable_statistic['stand_visual_inspection'] + 1
-            if stat.stand == "Стенд диагностики":
-                returnable_statistic['stand_diagnostic'] = returnable_statistic['stand_diagnostic'] + 1
-            if stat.stand == "Стенд сборки":
-                returnable_statistic['stand_board_case'] = returnable_statistic['stand_board_case'] + 1
-            if stat.stand == "Стенд ПСИ":
-                returnable_statistic['stand_PCI'] = returnable_statistic['stand_PCI'] + 1
-            if stat.stand == "Стенд упаковки":
-                returnable_statistic['stand_package'] = returnable_statistic['stand_package'] + 1
+        returnable_statistic_istok = {'stand_visual_inspection': 0,
+                                      'stand_diagnostic': 0,
+                                      'stand_board_case': 0,
+                                      'stand_PCI': 0,
+                                      'stand_package': 0}
+        returnable_statistic_tsi = {'stand_visual_inspection': 0,
+                                    'stand_diagnostic': 0,
+                                    'stand_board_case': 0,
+                                    'stand_PCI': 0,
+                                    'stand_package': 0}
 
-        return render(request, 'statistic.html', context={'statistic': returnable_statistic, 'form': form})
+        for stat in statistic:
+            if stat.manufacturer == "Исток":
+                if stat.stand == "Стенд визуального осмотра":
+                    returnable_statistic_istok['stand_visual_inspection'] = returnable_statistic_istok['stand_visual_inspection'] + 1
+                if stat.stand == "Стенд диагностики":
+                    returnable_statistic_istok['stand_diagnostic'] = returnable_statistic_istok['stand_diagnostic'] + 1
+                if stat.stand == "Стенд сборки":
+                    returnable_statistic_istok['stand_board_case'] = returnable_statistic_istok['stand_board_case'] + 1
+                if stat.stand == "Стенд ПСИ":
+                    returnable_statistic_istok['stand_PCI'] = returnable_statistic_istok['stand_PCI'] + 1
+                if stat.stand == "Стенд упаковки":
+                    returnable_statistic_istok['stand_package'] = returnable_statistic_istok['stand_package'] + 1
+            if stat.manufacturer == "ТСИ":
+                if stat.stand == "Стенд визуального осмотра":
+                    returnable_statistic_tsi['stand_visual_inspection'] = returnable_statistic_tsi['stand_visual_inspection'] + 1
+                if stat.stand == "Стенд диагностики":
+                    returnable_statistic_tsi['stand_diagnostic'] = returnable_statistic_tsi['stand_diagnostic'] + 1
+                if stat.stand == "Стенд сборки":
+                    returnable_statistic_tsi['stand_board_case'] = returnable_statistic_tsi['stand_board_case'] + 1
+                if stat.stand == "Стенд ПСИ":
+                    returnable_statistic_tsi['stand_PCI'] = returnable_statistic_tsi['stand_PCI'] + 1
+                if stat.stand == "Стенд упаковки":
+                    returnable_statistic_tsi['stand_package'] = returnable_statistic_tsi['stand_package'] + 1
+
+        return render(request, 'statistic.html', context={'statistic_istok': returnable_statistic_istok,
+                                                          'statistic_tsi': returnable_statistic_tsi,
+                                                          'form': form})
 
     return render(request, 'statistic.html', context={'form': form})
 
@@ -70,7 +88,7 @@ def generate_serial_numbers_page(request):
             detail_type = form.cleaned_data['detail_type']
             place_of_production = form.cleaned_data['place_of_production']
             count = form.cleaned_data['count']
-            current_time = str(datetime.datetime.now())[:-7].replace(' ', '_').replace(':', '-')
+            current_time = str(datetime.now())[:-7].replace(' ', '_').replace(':', '-')
             generate_serial_number(device_type, modification_type,
                                    detail_type, place_of_production, count, current_time)
             filename1 = f'stands/storage/userfiles/SerialNumbers/{device_type}/{modification_type}/{detail_type}' \
@@ -93,7 +111,7 @@ def stand_board_case_page(request):
                                             form.cleaned_data['case_serial_number'])
             manufacturer = form.cleaned_data['board_serial_number'],
 
-            Statistic.new_note('Стенд сборки')
+            Statistic.new_note(form.cleaned_data['device_serial_number'], 'Стенд сборки')
             History.new_note(form.cleaned_data['device_serial_number'], msg="СТЕНД СБОРКИ, стенд пройден успешно")
             return redirect('stand-board-case')
 
@@ -107,7 +125,7 @@ def stand_package_page(request):
 
         if form.is_valid():
             stickers = start_package_process(form.cleaned_data['device_serial_number'])
-            Statistic.new_note('Стенд упаковки')
+            Statistic.new_note(form.cleaned_data['device_serial_number'], 'Стенд упаковки')
             History.new_note(form.cleaned_data['device_serial_number'], msg="СТЕНД УПАКОВКИ, стенд пройден успешно")
 
             return render(request, 'stand_package.html', context={'form': form, 'stickers': stickers})
@@ -124,9 +142,9 @@ def stand_visual_inspection_page(request):
             SerialNumBoard.create_board_serial_number(
                 form.cleaned_data['board_serial_number'],
                 request.user, valid=True)
-            Statistic.new_note('Стенд визульного осмотра')
+            Statistic.new_note(form.cleaned_data['board_serial_number'], 'Стенд визуального осмотра')
             History.new_note(form.cleaned_data['board_serial_number'],
-                             msg="СТЕНД ВИЗУЛЬНОГО ОСМОТРА, стенд пройден успешно")
+                             msg="СТЕНД ВИЗУАЛЬНОГО ОСМОТРА, стенд пройден успешно")
 
             return redirect('stand-visual-inspection')
 
@@ -138,7 +156,7 @@ def stand_visual_inspection_page(request):
                 form.cleaned_data['board_serial_number'],
                 request.user, valid=False)
             History.new_note(form.cleaned_data['board_serial_number'],
-                             msg="СТЕНД ВИЗУЛЬНОГО ОСМОТРА, стенд не пройден")
+                             msg="СТЕНД ВИЗУАЛЬНОГО ОСМОТРА, стенд не пройден")
 
             return redirect('stand-visual-inspection')
 
