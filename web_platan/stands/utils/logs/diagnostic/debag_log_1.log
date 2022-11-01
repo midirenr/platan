@@ -1,0 +1,210 @@
+2022-11-01 14:17:47 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: 
+2022-11-01 14:20:17 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: 
+2022-11-01 14:28:38 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: ..................
+DBG: memtest(): crc=0x7E98AF4D, eval_crc=0x0000FF58, immediate_stop=1353719854,
+iteration_count=1100693805, start_add=0x11A7B5AB, stop_addr=0x20F0985E
+DRAM: lowmem = 128 MiB
+POST memory PASSED
+MIPS:  SIMD ready
+MIPS:  Write Merge enable
+MIPS:  MAAR[0]: 0x00010000-0x07ffffff speculate
+ARCH:  CPU core freq is set to 1200MHz
+In:    serial
+Out:   serial
+Err:   serial
+Net:   DBG: phy_marvell_init
+m88e1518_config: MIIM_88E151x_RGMII_RX_DELAY
+m88e1518_config: MIIM_88E151x_RGMII_RX_DELAY
+dwmac.bf05e000, dwmac.bf060000
+Hit any key to stop autoboot
+2022-11-01 14:28:42 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: :  0 
+[?25l[2J[1;1H[1;1H[2K[2;1H  --== RT1MB boot menu ==--[0K[3;1H[2K[8;1H[2K[9;1H  Press UP/DOWN to move, ENTER to select menu entry 1[0K[10;1H[2K[4;1H     [7mNormal boot[0m[5;1H     Install software[6;1H     U-Boot console[8;1H  Hit any key to stop autoboot menu entry  1:  3[8;1H[2K[1;1H[2K[2;1H  --== RT1MB boot menu ==--[0K[3;1H[2K[8;1H[2K[9;1H  Press UP/DOWN to move, ENTER to select menu entry 2[0K[10;1H[2K[4;1H     Normal boot[5;1H     [7mInstall software[0m[6;1H     U-Boot console[1;1H[2K[2;1H  --== RT1MB boot menu ==--[0K[3;1H[2K[8;1H[2K[9;1H  Press UP/DOWN to move, ENTER to select menu entry 3[0K[10;1H[2K[4;1H     Normal boot[5;1H     Install software[6;1H     [7mU-Boot console[0m[?25h[2J[1;1HBAIKAL # 
+2022-11-01 14:28:55 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:28:56 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend: sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:28:59 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:29:00 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:29:03 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:29:04 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:29:07 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:29:08 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:29:11 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:29:12 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:29:15 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:29:16 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:29:16 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 10.255.255.56 ;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+2022-11-01 14:30:46 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 10.255.255.56 ;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+(Re)start USB...
+USB0:   Register 1000140 NbrPorts 1
+Starting the controller
+USB XHCI 1.00
+scanning bus 0 for devices... 2 USB Device(s) found
+       scanning usb for storage devices... 0 Storage Device(s) found
+dwmac.bf05e000 Waiting for PHY auto negotiation to complete......... TIMEOUT !
+dwmac.bf05e000: No link.
+dwmac.bf060000 Waiting for PHY auto negotiation to complete......... TIMEOUT !
+dwmac.bf060000: No link.
+Saving Environment to Flash...
+dwmac.bf05e000 Waiting for PHY auto negotiation to complete.
+2022-11-01 14:32:09 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: .
+
+U-Boot 2014.10-00007-g229b386-dirty / SDK  (Aug 27 2020 - 14:05:36)
+
+CPU:   MIPS32 P5600 @ 1200 MHz (Rev 1.0)
+FPU:   Present
+Cores: 2 (running on CPU0)
+Timer: 600 MHz
+ECC:   L1 L2 (80800000)
+PLLs:  CPU: 1200MHz  SATA: 600MHz  ETH:1250MHz
+       PCIE:1200MHz  DDR3: 266MHz  AXI: 600MHz
+Board: Baikal-T1 RT1MB
+       Watchdog enabled
+I2C:   ready
+DRAM:  Static SPD, Ranks = 1, highmem = 1792 MiB (1792 MiB below 4G)
+DBG_OUT: Config register 0 value:0x80040603
+DBG_OUT: Config register 1 value:0xFEE3719B
+DBG_OUT: Config register 2 value:0x80000647
+DBG_OUT: Config register 3 value:0xBF8032A9
+DBG_OUT: Config register 4 value:0xC01CC127
+DBG_OUT: Config register 5 value:0x10000038
+DBG_OUT: Config register 6 value:0x00008000
+DBG: Memory testing ........................
+DBG: memtest(): crc=0x7E98AB4D, eval_crc=0x000040A9, immediate_stop=1357979790,
+iteration_count=1100694445, start_add=0x11A7F5AB, stop_addr=0x20F0985F
+DRAM: lowmem = 128 MiB
+POST memory PASSED
+MIPS:  SIMD ready
+MIPS:  Write Merge enable
+MIPS:  MAAR[0]: 0x00010000-0x07ffffff speculate
+ARCH:  CPU core freq is set to 1200MHz
+In:    serial
+Out:   serial
+Err:   serial
+Net:   DBG: phy_marvell_init
+m88e1518_config: MIIM_88E151x_RGMII_RX_DELAY
+m88e1518_config: MIIM_88E151x_RGMII_RX_DELAY
+dwmac.bf05e000, dwmac.bf060000
+Hit any key to stop autoboot
+2022-11-01 14:32:13 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: :  0 
+[?25l[2J[1;1H[1;1H[2K[2;1H  --== RT1MB boot menu ==--[0K[3;1H[2K[8;1H[2K[9;1H  Press UP/DOWN to move, ENTER to select menu entry 1[0K[10;1H[2K[4;1H     [7mNormal boot[0m[5;1H     Install software[6;1H     U-Boot console[8;1H  Hit any key to stop autoboot menu entry  1:  3[8;1H[2K[1;1H[2K[2;1H  --== RT1MB boot menu ==--[0K[3;1H[2K[8;1H[2K[9;1H  Press UP/DOWN to move, ENTER to select menu entry 2[0K[10;1H[2K[4;1H     Normal boot[5;1H     [7mInstall software[0m[6;1H     U-Boot console[1;1H[2K[2;1H  --== RT1MB boot menu ==--[0K[3;1H[2K[8;1H[2K[9;1H  Press UP/DOWN to move, ENTER to select menu entry 3[0K[10;1H[2K[4;1H     Normal boot[5;1H     Install software[6;1H     [7mU-Boot console[0m[?25h[2J[1;1HBAIKAL # 
+2022-11-01 14:32:26 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:32:27 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend: sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:32:30 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:32:31 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:32:34 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:32:35 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:32:38 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:32:39 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:32:42 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:32:43 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:32:46 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: sata init
+2022-11-01 14:32:47 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  sata init
+AHCI 0001.0300 32 slots 2 ports 6 Gbps 0x3 impl SATA mode
+flags: ncq stag pm led clo only pmp pio slum part 
+SATA Device Info:
+S/N: 20201027AA10054060E7
+Product model number: nanoSSD 3ME3
+Firmware version: S17411
+Capacity: 31277232 sectors
+BAIKAL #
+2022-11-01 14:32:47 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: send: usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 10.255.255.56 ;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+2022-11-01 14:34:17 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0120  -  1  -  logger_debag: resend:  usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 10.255.255.56 ;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+(Re)start USB...
+USB0:   Register 1000140 NbrPorts 1
+Starting the controller
+USB XHCI 1.00
+scanning bus 0 for devices... 2 USB Device(s) found
+       scanning usb for storage devices... 0 Storage Device(s) found
+dwmac.bf05e000 Waiting for PHY auto negotiation to complete......... TIMEOUT !
+dwmac.bf05e000: No link.
+dwmac.bf060000 Waiting for PHY auto negotiation to complete......... TIMEOUT !
+dwmac.bf060000: No link.
+Saving Environment to Flash...
+dwmac.bf05e000 Waiting for PHY auto negotiation to complete.

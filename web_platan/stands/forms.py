@@ -193,7 +193,7 @@ class StandDiagnostic(forms.Form):
             self.cleaned_data['board_serial_number_4'],
             self.cleaned_data['board_serial_number_5']]
 
-        for i in range(board_count):
+        for i in range(int(board_count)):
             if serial_numbers[i][4:6] != '20':
                 self.errors['board_serial_number_1'] = self.error_class([f'Серийный номер указан неправильно!'
                                                                          f'\nОтсканируйте повторно.'])

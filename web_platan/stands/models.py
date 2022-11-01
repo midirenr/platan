@@ -25,9 +25,9 @@ class Devices(models.Model):
     serial_num_bp_id = models.OneToOneField('SerialNumBP', on_delete=models.CASCADE, blank=True, null=True)
     serial_num_pki_id = models.OneToOneField('SerialNumPKI', on_delete=models.CASCADE, blank=True, null=True)
     serial_num_router_id = models.OneToOneField('SerialNumRouter', on_delete=models.CASCADE, null=True, blank=True)
-    ethaddr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac1', unique=True,  blank=True, null=True)
-    eth1addr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac2', unique=True,  blank=True, null=True)
-    eth2addr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac3', unique=True,  blank=True, null=True)
+    ethaddr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac1', blank=True, null=True)
+    eth1addr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac2', blank=True, null=True)
+    eth2addr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac3', blank=True, null=True)
     diag = models.BooleanField(default=False)
     date_time_pci = models.CharField(default='No', max_length=150)
     date_time_package = models.CharField(default='No', max_length=150)
@@ -71,7 +71,9 @@ class Devices(models.Model):
         Функция меняет значение diag девайса в положение True по серийному номеру платы
         """
         board_id = SerialNumBoard.objects.get(serial_num=serial_num)
-        cls.objects.get(serial_num_board_id=board_id.id).update(diag=True)
+        device = cls.objects.get(serial_num_board_id=board_id.id)
+        device.diag = True
+        device.save()
 
     @classmethod
     def check_diag(cls, serial_num):
@@ -79,7 +81,7 @@ class Devices(models.Model):
         Функция возвращает реузльтат диагностики девайса по серийному номеру платы
         """
         try:
-            board_id = SerialNumBoard.objects.get(serial_num=serial_num)
+            board_id = SerialNumBoard.objects.get(serial_num_board=serial_num)
             device = cls.objects.get(serial_num_board_id=board_id.id)
             return device.diag
         except cls.DoesNotExist:
@@ -90,11 +92,13 @@ class Devices(models.Model):
         """
         Функция создает новый роутер и записывает информацию в Devices
         """
-        board_id = SerialNumBoard.objects.get(serial_num=serial_num_board)
+        board_id = SerialNumBoard.objects.get(serial_num_board=serial_num_board)
         device_id = cls.objects.get(serial_num_board_id=board_id.id)
-        new_router = SerialNumRouter(serial_num_router=serial_num_router, device_id=device_id.id)
+        new_router = SerialNumRouter(serial_num_router=serial_num_router, device_id=device_id)
         new_router.save()
-        cls.objects.get(serial_num_board_id=board_id.id).update(serial_num_router_id=new_router.id)
+        router = cls.objects.get(serial_num_board_id=board_id.id)
+        router.serial_num_router_id = new_router
+        router.save()
 
     @classmethod
     def get_macs(cls, serial_num):
@@ -115,8 +119,9 @@ class Devices(models.Model):
         router_id: id роутера, который мы получаем для поиска записи в таблице devices
         """
         router_id = SerialNumRouter.objects.get(serial_num=serial_num)
-        cls.objects.get(serial_num_router_id=router_id.id).update(
-            date_time_pci=str(datetime.now())[:-7].replace(':', '-'))
+        device = cls.objects.get(serial_num_router_id=router_id.id)
+        device.date_time_pci = str(datetime.now())[:-7].replace(':', '-')
+        device.save()
 
     @classmethod
     def get_date_time_pci(cls, serial_num: str) -> str:
@@ -170,7 +175,7 @@ class SerialNumBoard(models.Model):
     @classmethod
     def check_sn(cls, serial_num_board):
         try:
-            cls.objects.get(serial_num_router=serial_num_board)
+            cls.objects.get(serial_num_board=serial_num_board)
             return True
         except Exception:
             return False
@@ -206,8 +211,10 @@ class SerialNumBoard(models.Model):
         valid: результат визуального осмотра
         error_code: код ошибки
         """
-        cls.objects.get(serial_num=serial_num).update(visual_inspection=valid)
-        cls.objects.get(serial_num=serial_num).update(visual_inspection_error_code=error_code)
+        board = cls.objects.get(serial_num_board=serial_num)
+        board.visual_inspection = valid
+        board.visual_inspection_error_code = error_code
+        board.save()
 
     @classmethod
     def get_error_code(cls, serial_num: str) -> str:
@@ -215,7 +222,7 @@ class SerialNumBoard(models.Model):
         Функция устанавливает значение visual_inspection_error_code='000' записи по serial_num
         serial_num: серийный номер платы, у которой необходимо изменить visual_inspection_error_code
         """
-        return cls.objects.get(serial_num=serial_num)
+        return cls.objects.get(serial_num_board=serial_num)
 
     @classmethod
     def update_error_code(cls, serial_num: str):
@@ -224,7 +231,8 @@ class SerialNumBoard(models.Model):
 
         serial_num: серийный номер платы, у которой необходимо изменить visual_inspection_error_code
         """
-        cls.objects.get(serial_num=serial_num).update(visual_inspection_error_code='000')
+        board = cls.objects.get(serial_num_board=serial_num)
+        board.visual_inspection_error_code = '000'
 
     @classmethod
     def is_existence(cls, serial_num: str) -> bool:
@@ -232,7 +240,7 @@ class SerialNumBoard(models.Model):
         Функция проверяет наличие {serial_num} в базе данных
         """
         try:
-            cls.objects.get(serial_num=serial_num)
+            cls.objects.get(serial_num_board=serial_num)
             return True
         except cls.DoesNotExist:
             return False
@@ -288,7 +296,7 @@ class SerialNumRouter(models.Model):
 
 class Macs(models.Model):
     mac = models.CharField(max_length=14, unique=True)
-    device_id = models.ForeignKey('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
+    device_id = models.ForeignKey('Devices', on_delete=models.CASCADE, blank=True, null=True, unique=False)
 
     class Meta:
         db_table = 'macs'

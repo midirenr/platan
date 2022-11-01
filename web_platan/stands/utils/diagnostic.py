@@ -59,7 +59,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         :param yaml_file: имя файла конфигурации
         :return: возвращает также имя файла конфигурации. Может отличаться от изначально введенного пользователем
         """
-        os.chdir('yamls/')
+        os.chdir('stands/utils/yamls')
         while True:
             if not yaml_file in filter(os.path.isfile, os.listdir(os.curdir)):
                 output_file.write('Отсутствует конфигурационный файл!\n')
@@ -799,7 +799,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         'КРПГ.465614.001-17': 'devices_sp_pci_2.yaml',
     }
 
-    output_file = open('platan/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
+    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
     y_f = modifications_config.get(modification)
     yaml_file = verify_yaml_name(y_f)
 
@@ -811,7 +811,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
 
     # log_debag
     logger_debag_1 = logging.getLogger('debag_1')
-    log_d_1 = logging.FileHandler('.log/debag_log_1.log')
+    log_d_1 = logging.FileHandler('logs/diagnostic/debag_log_1.log')
     logger_debag_1.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -819,7 +819,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_1.setFormatter(format_d_script)
     logger_debag_1.addHandler(log_d_1)
     logger_debag_2 = logging.getLogger('debag_2')
-    log_d_2 = logging.FileHandler('.log/debag_log_2.log')
+    log_d_2 = logging.FileHandler('logs/diagnostic/debag_log_2.log')
     logger_debag_2.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -827,7 +827,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_2.setFormatter(format_d_script)
     logger_debag_2.addHandler(log_d_2)
     logger_debag_3 = logging.getLogger('debag_3')
-    log_d_3 = logging.FileHandler('.log/debag_log_3.log')
+    log_d_3 = logging.FileHandler('logs/diagnostic/debag_log_3.log')
     logger_debag_3.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -835,7 +835,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_3.setFormatter(format_d_script)
     logger_debag_3.addHandler(log_d_3)
     logger_debag_4 = logging.getLogger('debag_4')
-    log_d_4 = logging.FileHandler('.log/debag_log_4.log')
+    log_d_4 = logging.FileHandler('logs/diagnostic/debag_log_4.log')
     logger_debag_4.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -843,7 +843,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_4.setFormatter(format_d_script)
     logger_debag_4.addHandler(log_d_4)
     logger_debag_5 = logging.getLogger('debag_5')
-    log_d_5 = logging.FileHandler('.log/debag_log_5.log')
+    log_d_5 = logging.FileHandler('logs/diagnostic/debag_log_5.log')
     logger_debag_5.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -852,14 +852,14 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     logger_debag_5.addHandler(log_d_5)
     # log_info stend
     logger_stend = logging.getLogger('stend')
-    log_i_stend = logging.FileHandler('.log/log_stend.log')
+    log_i_stend = logging.FileHandler('logs/diagnostic/log_stend.log')
     logger_stend.setLevel(logging.INFO)
     format_i_stend = logging.Formatter("%(asctime)s - %(levelname)s - %(stend)s - %(message)s", '%Y-%m-%d %H:%M:%S')
     log_i_stend.setFormatter(format_i_stend)
     logger_stend.addHandler(log_i_stend)
     # log_info script
     logger_script = logging.getLogger('script')
-    log_i_script = logging.FileHandler('.log/log_script.log')
+    log_i_script = logging.FileHandler('logs/diagnostic/log_script.log')
     logger_script.setLevel(logging.INFO)
     format_i_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -911,9 +911,9 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         bridge_restart_result = executor.map(tcp_to_serial_bridge_restart_ssh, list(range(1, int(board_count) + 1)))
 
     # Проверка tftp сервиса
-    host_service_check_ssh('tftp')
+    host_service_check_ssh('tftpd-hpa')
     # Проверка ftp сервиса
-    host_service_check_ssh('vsftp')
+    host_service_check_ssh('vsftpd')
 
     # запуск инсталляции ПО и проверок
     result = {}
@@ -1037,7 +1037,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     output_file.flush()
         # запись сырых результатов в файл
     current_time = str(datetime.now())[:-7].replace(':', '-')
-    with open(f'logs_diag/raw_results-{current_time}.yaml', 'w') as f:
+    with open(f'logs/diagnostic/raw_results/raw_results-{current_time}.yaml', 'w') as f:
         f.write(yaml.dump(result, allow_unicode=True))
 
     logger_stend.removeHandler(log_i_stend)

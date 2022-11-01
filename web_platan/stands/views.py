@@ -99,23 +99,20 @@ def generate_serial_numbers_page(request):
 
 
 def stand_board_case_page(request):
-    form = ChainBoardCase()
+    form = ChainBoardCase(request.POST)
 
     if request.method == 'POST':
-        form = ChainBoardCase(request.POST)
 
         if form.is_valid():
-            form = ChainBoardCase(request.POST)
             Devices.write_serial_num_router(
                                             form.cleaned_data['board_serial_number'],
                                             form.cleaned_data['case_serial_number'])
-            manufacturer = form.cleaned_data['board_serial_number'],
 
-            Statistic.new_note(form.cleaned_data['device_serial_number'], 'Стенд сборки')
-            History.new_note(form.cleaned_data['device_serial_number'], msg="СТЕНД СБОРКИ, стенд пройден успешно")
+            Statistic.new_note(form.cleaned_data['board_serial_number'], 'Стенд сборки')
+            History.new_note(form.cleaned_data['board_serial_number'], msg="СТЕНД СБОРКИ, стенд пройден успешно")
             return redirect('stand-board-case')
 
-    return render(request, 'stand_board_case.html', context={'form': form})
+    return render(request, 'stand_board_case.html', context={'form': ChainBoardCase()})
 
 
 def stand_package_page(request):

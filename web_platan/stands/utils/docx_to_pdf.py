@@ -9,7 +9,7 @@ import qrcode
 
 
 def fill_the_doc(number, serial_number, modification, control_test_0, control_test_1):
-    document = MailMerge('protocol_after_psi/protocol_template.docx')
+    document = MailMerge('protocols/protocol_template.docx')
 
     document.merge(
         Protocol_Number=number,
@@ -28,8 +28,8 @@ def fill_the_doc(number, serial_number, modification, control_test_0, control_te
 
 
 def convert_docx_to_pdf(input_docx):
-    libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
-    #libre_office = r'/usr/bin/libreoffice'
+    #libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
+    libre_office = r'/usr/bin/libreoffice'
     process1 = subprocess.Popen(
         [libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'protocol_after_psi', input_docx])
     process1.communicate()
@@ -63,8 +63,8 @@ def print_sticker(serial_number, modification):
 
 
 def convert_docx_to_pdf_package(input_docx):
-    libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
-    #libre_office = r'/usr/bin/libreoffice'
+    #libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
+    libre_office = r'/usr/bin/libreoffice'
     process2 = subprocess.Popen([libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'stands/storage/userfiles/stickers', input_docx])
     process2.communicate()
     os.remove(f'{input_docx}')
@@ -92,8 +92,8 @@ def print_sticker_passport(serial_number):
 
 
 def convert_docx_to_pdf_passport(input_docx_passport):
-    libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
-    #libre_office = r'/usr/bin/libreoffice'
+    #libre_office = r'C:/Program Files/LibreOffice/program/soffice.exe'
+    libre_office = r'/usr/bin/libreoffice'
     process3 = subprocess.Popen(
         [libre_office, '--headless', '--convert-to', 'pdf', '--outdir', 'stands/storage/userfiles/stickers', input_docx_passport])
     process3.communicate()
