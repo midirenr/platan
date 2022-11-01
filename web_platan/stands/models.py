@@ -18,16 +18,16 @@ class Devices(models.Model):
     date_time_package: дата/время упаковки
     """
 
-    serial_num_pcb_id = models.OneToOneField('SerialNumPCB', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    serial_num_board_id = models.OneToOneField('SerialNumBoard', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    serial_num_case_id = models.OneToOneField('SerialNumCase', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    serial_num_package_id = models.OneToOneField('SerialNumPackage', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    serial_num_bp_id = models.OneToOneField('SerialNumBP', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    serial_num_pki_id = models.OneToOneField('SerialNumPKI', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    serial_num_router_id = models.OneToOneField('SerialNumRouter', on_delete=models.CASCADE, unique=True, null=True, blank=True)
-    ethaddr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac1', null=True, blank=True)
-    eth1addr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac2', null=True, blank=True)
-    eth2addr_id = models.OneToOneField('Macs', on_delete=models.CASCADE, unique=True, related_name='mac3', null=True, blank=True)
+    serial_num_pcb_id = models.OneToOneField('SerialNumPCB', on_delete=models.CASCADE,  blank=True, null=True)
+    serial_num_board_id = models.OneToOneField('SerialNumBoard', on_delete=models.CASCADE, blank=True, null=True)
+    serial_num_case_id = models.OneToOneField('SerialNumCase', on_delete=models.CASCADE, blank=True, null=True)
+    serial_num_package_id = models.OneToOneField('SerialNumPackage', on_delete=models.CASCADE, blank=True, null=True)
+    serial_num_bp_id = models.OneToOneField('SerialNumBP', on_delete=models.CASCADE, blank=True, null=True)
+    serial_num_pki_id = models.OneToOneField('SerialNumPKI', on_delete=models.CASCADE, blank=True, null=True)
+    serial_num_router_id = models.OneToOneField('SerialNumRouter', on_delete=models.CASCADE, null=True, blank=True)
+    ethaddr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac1', unique=True,  blank=True, null=True)
+    eth1addr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac2', unique=True,  blank=True, null=True)
+    eth2addr_id = models.ForeignKey('Macs', on_delete=models.CASCADE, related_name='mac3', unique=True,  blank=True, null=True)
     diag = models.BooleanField(default=False)
     date_time_pci = models.CharField(default='No', max_length=150)
     date_time_package = models.CharField(default='No', max_length=150)
@@ -142,7 +142,7 @@ class Devices(models.Model):
 
 class SerialNumPCB(models.Model):
     serial_num_pcb = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_pcb'
@@ -158,11 +158,11 @@ class SerialNumBoard(models.Model):
     device_id: девайс к котором стоит плата
     """
     serial_num_board = models.CharField(max_length=14, unique=True)
-    visual_inspection_author = models.CharField(max_length=150, default='None')
+    visual_inspection_author = models.CharField(max_length=150, blank=True, null=True)
     visual_inspection = models.BooleanField(default=False)
-    visual_inspection_error_code = models.CharField(default='', max_length=3)
+    visual_inspection_error_code = models.CharField(max_length=3, blank=True, null=True)
     visual_inspection_datetime = models.CharField(max_length=20, null=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True, null=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_board'
@@ -240,7 +240,7 @@ class SerialNumBoard(models.Model):
 
 class SerialNumCase(models.Model):
     serial_num_case = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_case'
@@ -248,7 +248,7 @@ class SerialNumCase(models.Model):
 
 class SerialNumPackage(models.Model):
     serial_num_package = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_package'
@@ -256,7 +256,7 @@ class SerialNumPackage(models.Model):
 
 class SerialNumBP(models.Model):
     serial_num_BP = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_BP'
@@ -264,7 +264,7 @@ class SerialNumBP(models.Model):
 
 class SerialNumPKI(models.Model):
     serial_num_pki = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True)
+    device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_pki'
@@ -288,7 +288,7 @@ class SerialNumRouter(models.Model):
 
 class Macs(models.Model):
     mac = models.CharField(max_length=14, unique=True)
-    device_id = models.OneToOneField('Devices', default="None", on_delete=models.CASCADE, unique=True,)
+    device_id = models.ForeignKey('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'macs'
