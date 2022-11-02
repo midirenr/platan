@@ -15,7 +15,7 @@
 
     {% if next %}
         {% if user.is_authenticated %}
-            <p>Вы авторизованы!</p>
+            <p>У вас нет доступа к данному стенду!</p>
         {% else %}
             <form method="post" action="{% url 'login' %}" id="login-form">
             {% csrf_token %}
@@ -38,7 +38,7 @@
         {% endif %}
     {% else %}
         {% if user.is_authenticated %}
-            <p id="logged-in">Вы авторизованы!</p>
+            <p id="logged-in">У вас нет доступа к данному стенду!</p>
         {% else %}
             <form method="post" action="{% url 'login' %}" id="login-form">
             {% csrf_token %}

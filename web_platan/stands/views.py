@@ -9,11 +9,11 @@ from .utils.package import *
 from .utils import diagnostic
 from .utils import PCI
 from .utils.get_host_ip import *
+from .utils.group_required import group_required
 
 
 def index(request):
     return render(request, 'index.html', context={})
-
 
 def history_page(request):
     form = HistoryForm()
@@ -76,6 +76,7 @@ def statistic_page(request):
     return render(request, 'statistic.html', context={'form': form})
 
 
+@group_required('Техническое бюро')
 def generate_serial_numbers_page(request):
     form = GenerateSerialNumbersForm()
 
@@ -98,6 +99,7 @@ def generate_serial_numbers_page(request):
         request, 'generate_serial_numbers.html', context={'form': form})
 
 
+@group_required('Стенд сборки')
 def stand_board_case_page(request):
     form = ChainBoardCase(request.POST)
 
@@ -115,6 +117,7 @@ def stand_board_case_page(request):
     return render(request, 'stand_board_case.html', context={'form': ChainBoardCase()})
 
 
+@group_required('Стенд упаковки')
 def stand_package_page(request):
     form = StandPackage()
     if request.method == 'POST':
@@ -129,6 +132,7 @@ def stand_package_page(request):
     return render(request, 'stand_package.html', context={'form': form})
 
 
+@group_required('Стенд визуального осмотра')
 def stand_visual_inspection_page(request):
     form = StandVisualInspection()
 
@@ -160,6 +164,7 @@ def stand_visual_inspection_page(request):
     return render(request, 'stand_visual_inspection.html', context={'form': form})
 
 
+@group_required('Стенд диагностики')
 def stand_diagnostic_page(request):
     form = StandDiagnostic()
     if request.method == 'POST':
@@ -199,6 +204,7 @@ def stand_diagnostic_page(request):
     return render(request, 'stand-diagnostic.html', context={'form': form})
 
 
+@group_required('Стенд ПСИ')
 def stand_pci_page(request):
     form = StandPCI()
     if 'pci_start' in request.POST and request.method == 'POST':

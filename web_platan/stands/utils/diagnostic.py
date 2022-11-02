@@ -297,7 +297,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 f'usb start ; \
                 env set phy_sfp 1 ; \
                 dhcp ; \
-                setenv serverip {host_ip} ; \
+                setenv serverip 192.168.1.2; \
                 setenv fdt_addr_n 0x85D00000 ; \
                 setenv fdt_file_name baikal.dtb ; \
                 setenv initrd_addr_n 0x86000000 ; \
@@ -316,7 +316,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             setenv_commands = [
                 f'usb start ; \
                 dhcp ; \
-                setenv serverip {host_ip} ; \
+                setenv serverip 192.168.1.2 ; \
                 setenv fdt_addr_n 0x85D00000 ; \
                 setenv fdt_file_name baikal.dtb ; \
                 setenv initrd_addr_n 0x86000000 ; \
@@ -573,18 +573,23 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         send_commands(connect, commands, sn, place, expect_string='admin@sr-be')
         third_octet = 200 + dev_num
         # отправляем 5 пакетов чтобы заполнились ARP и FDB таблицы на устройствах, потом отправляем тестовые 30 пакетов
-        subprocess.run(['ping', f'192.168.{third_octet}.1', '-c', '5'],
-                       stdout=subprocess.PIPE).stdout.decode('utf-8')
-        ping_result = subprocess.run(['ping', f'192.168.{third_octet}.1', '-c', '30', '-i', '0,2'],
-                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
-        logger_debag(ping_result, sn, stend, place)
-        if 'Destination Host Unreachable' in ping_result:
-            logger_script.error('Порты не прошли проверку',
-                                extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-        else:
-            logger_script.info('Порты успешно прошли проверку',
-                               extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-        return ping_result
+        try:
+            host_config = {
+                'device_type': 'linux',
+                'host': host_ip,
+                'username': 'istok',
+                'password': 'istok',
+                'secret': 'istok',
+                'port': '22',
+            }
+            ssh = ConnectHandler(**host_config)
+            ssh.enable()
+            ssh.send_command(f'ping 192.168.{third_octet}.1 -c 5')
+            ping_result = ssh.send_command(f'ping 192.168.{third_octet}.1 -c 30 -i 0,2')
+            logger_debag(ping_result, sn, stend, place)
+            return ping_result
+        except:
+            raise CustomError('Не удалось подключиться!')
 
     def nmc_check(connect):
         login_to_router(connect)
@@ -681,7 +686,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 logger_script.info(f'Установка ПО на устройство',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 time.sleep(5)
-                install_software_timeout = 600
+                install_software_timeout = 900
                 result[f'device_num_{device_num}']['start_installing_sw'] = install_software(connect,
                                                                                              install_software_timeout,
                                                                                              phase, sn, stend, place)
@@ -728,11 +733,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 result[f'device_num_{device_num}']['ping_result'] = ports_check(connect, ports_check_cmds,
                                                                                 device['port'] - 230, sn, stend, place)
 
-                output_file.write(f'Удаление разделов на устройстве {device_num}...\n')
-                output_file.flush()
-                logger_script.info(f'Удаление разделов на устройстве',
-                                   extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                result[f'device_num_{device_num}']['erase_disk_result'] = erase_disk(connect, sn, stend, place)
+
 
                 # phase = 'erase'
                 # self.mysignal.emit(f'Очистка flash на устройстве {device_num}...')

@@ -35,11 +35,17 @@
             <div class="left">
                 <form class="menu">
                     <ul id="navigation" class="sidebar">
+
+
+
                         {% if request.path == '/' %}
                             <li><a class="active" href="{% url 'index' %}">Главная страница</a></li>
                         {% else %}
                             <li><a href="{% url 'index' %}">Главная страница</a></li>
                         {% endif %}
+
+
+
 
                         {% if request.path == '/generate-serial-numbers/' %}
                             <li><a class="active" href="{% url 'generate-serial-numbers' %}">Генерация серийных номеров</a></li>
@@ -47,11 +53,17 @@
                             <li><a href="{% url 'generate-serial-numbers' %}">Генерация серийных номеров</a></li>
                         {% endif %}
 
+
+
+
                         {% if request.path == '/stand-visual-inspection/' %}
                             <li><a class="active" href="{% url 'stand-visual-inspection' %}">Стенд визуального осмотра</a></li>
                         {% else %}
                             <li><a href="{% url 'stand-visual-inspection' %}">Стенд визуального осмотра</a></li>
                         {% endif %}
+
+
+
 
                         {% if request.path == '/stand-diagnostic/' %}
                             <li><a class="active" href="{% url 'stand-diagnostic' %}">Стенд диагностики</a></li>
@@ -59,28 +71,27 @@
                             <li><a href="{% url 'stand-diagnostic' %}">Стенд диагностики</a></li>
                         {% endif %}
 
+
+
+
                         {% if request.path == '/stand-board-case/' %}
                             <li><a class="active" href="{% url 'stand-board-case' %}">Стенд сборки</a></li>
                         {% else %}
                             <li><a href="{% url 'stand-board-case' %}">Стенд сборки</a></li>
                         {% endif %}
-                        {%for group in request.user.groups.all%}
-                            {% if group.name == "Стенд ПсИ" %}
-                                {% if request.path == '/stand-pci/' %}
-                                    <li><a class="active" href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
-                                {% else %}
-                                    <li><a href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
-                                {% endif %}
-                            {% endif %}
-                        {% endfor %}
 
-                        {% if user.is_superuser %}
-                            {% if request.path == '/stand-pci/' %}
-                                <li><a class="active" href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
-                            {% else %}
-                                <li><a href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
-                            {% endif %}
+
+
+
+                        {% if request.path == '/stand-pci/' %}
+                            <li><a class="active" href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
+                        {% else %}
+                            <li><a href="{% url 'stand-pci' %}">Стенд ПСИ</a></li>
                         {% endif %}
+
+
+
+
 
                         {% if request.path == '/stand-package/' %}
                             <li><a class="active" href="{% url 'stand-package' %}">Стенд упаковки</a></li>
@@ -88,19 +99,23 @@
                             <li><a href="{% url 'stand-package' %}">Стенд упаковки</a></li>
                         {% endif %}
 
+
                         {% if user.is_superuser %}
-                        {% if request.path == '/history/' %}
-                            <li><a class="active" href="{% url 'history' %}">История девайса</a></li>
-                        {% else %}
-                            <li><a href="{% url 'history' %}">История девайса</a></li>
+                            {% if request.path == '/history/' %}
+                                <li><a class="active" href="{% url 'history' %}">История девайса</a></li>
+                            {% else %}
+                                <li><a href="{% url 'history' %}">История девайса</a></li>
+                            {% endif %}
                         {% endif %}
-                        {% endif %}
+
 
                         {% if request.path == '/statistic/' %}
                             <li><a class="active" href="{% url 'statistic' %}">Статистика</a></li>
                         {% else %}
                             <li><a href="{% url 'statistic' %}">Статистика</a></li>
                         {% endif %}
+
+
                         <br>
                         {% if user.is_superuser %}
                            <li><a target="_blank" href="/admin">Админка</a></li>
@@ -127,3 +142,9 @@
 
 </body>
 </html>
+
+{%for group in request.user.groups.all%}
+    {% if group.name == "Техническое бюро" %}
+
+    {% endif %}
+{% endfor %}
