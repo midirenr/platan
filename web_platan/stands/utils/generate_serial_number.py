@@ -1,22 +1,27 @@
 import os
-import datetime
+from datetime import date
+from ..models import *
 from collections import deque
 
-from .device_configurations.config import *
 
 
 def generate_serial_number(device_type, modification_type, detail_type, place_of_production, count, current_time):
-    type_of_device = device_dictionary.get(str(device_type))
-    modification = modification_dictionary.get(str(modification_type))
-    detail = detail_dictionary.get(str(detail_type))
-    place = place_dictionary.get(str(place_of_production))
-    year_now = datetime.date.today().year
+    type_of_device = DeviceType.objects.get(name=str(device_type))
+    type_of_device = type_of_device.serial_number_modify
+    modification = ModificationType.objects.get(name=str(modification_type))
+    modification = modification.serial_number_modify
+    detail = DetailType.objects.get(name=str(detail_type))
+    detail = detail.serial_number_modify
+    place = PlaceOfProduction.objects.get(name=str(place_of_production))
+    place = place.serial_number_modify
+
+    year_now = date.today().year
     if year_now == 2022:
         _year = 1
     else:
         _year = year_now - 2022 + 1
     _y = str(hex(_year)).split('x')[-1].capitalize()
-    _month = datetime.date.today().month
+    _month = date.today().month
     _m = str(hex(_month)).split('x')[-1].capitalize()
     with open(f'stands/storage/userfiles/SerialNumbers/{device_type}/{modification_type}/{detail_type}/log/how_much', 'r') as f1:
         how_much = list(deque(f1, 1))
