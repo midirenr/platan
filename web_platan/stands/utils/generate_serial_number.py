@@ -8,10 +8,13 @@ from collections import deque
 def generate_serial_number(device_type, modification_type, detail_type, place_of_production, count, current_time):
     type_of_device = DeviceType.objects.get(name=str(device_type))
     type_of_device = type_of_device.serial_number_modify
+
     modification = ModificationType.objects.get(name=str(modification_type))
     modification = modification.serial_number_modify
+
     detail = DetailType.objects.get(name=str(detail_type))
     detail = detail.serial_number_modify
+
     place = PlaceOfProduction.objects.get(name=str(place_of_production))
     place = place.serial_number_modify
 

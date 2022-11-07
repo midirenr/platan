@@ -73,7 +73,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         """
         History.new_note(serial_number, msg)
 
-
     def tcp_to_serial_bridge_restart(board_count):
         """
         Функция перезапускает tcp-to-serial мост
@@ -363,6 +362,53 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
             raise CustomErrorExtended(
                 ['SSD работает нестабильно!', f'SSD удалось инициализировать {len(check_list)} раз из 6', '501'])
+
+    def uboot_macs_set(connect, serial_num_router, place):
+        """
+        После входа в Uboot проверяется что текущие маки из нашего OUI. Если хотя бы один мак не соответствует
+        нашему OUI, то перезаписываем все маки на другие из списка macs
+        :param connect: объект для подключения к устройству по telnet
+        :param oui: наш OUI
+        :return: список с новыми маками если они прописывались, иначе - список с существующими маками
+        """
+        # Проверяем прописан ли серийный номер
+        int_numbers = ['ethaddr', 'eth1addr', 'eth2addr']
+        # Создаем список с существующими маками на интерфейсах
+        existing_macs = []
+        existing_macs_sn = []
+        existing_macs_sn.append(serial_num_router)
+        for int_number in int_numbers:
+            printenv_result = send_command(connect, f'printenv {int_number}', serial_num_router, place,
+                                           expect_string='BAIKAL #')
+            try:
+                existing_mac = re.search(r'(\w\w:){5}\w\w', printenv_result).group()
+            except AttributeError:
+                raise CustomErrorExtended([f'При прописывании МАС адреса не обнаружен интерфейс {int_number} \
+                    или его начальный МАС адрес'])
+            existing_macs.append(existing_mac)
+            existing_macs_sn.append(existing_mac)
+        # Проверяем, принадлежат ли маки нашему OUI
+        # Переделываем existing_macs в словарь чтобы записывать соответствие мака OUI
+        existing_macs = dict.fromkeys(existing_macs)
+        for mac in list(existing_macs.keys()):
+            existing_macs[mac] = False  # if mac[:8] == oui else False
+        # Если хотя бы один мак не наш или нет серийного номера, перезаписываем все маки. Не должно возникать ситуации когда один или два
+        # мака из трех не наши
+        sn_macs = []
+        sn_macs.append(serial_num_router)
+        printenv_result_sn = send_command(connect, 'printenv serial_num', serial_num_router, place,
+                                          expect_string='BAIKAL #')
+        if False in list(existing_macs.values()) or printenv_result_sn == '## Error: "serial_num" not defined':
+            new_macs_sn = Devices.create_device(serial_num_router)
+            send_command(connect, f'setenv serial_num {serial_num_router}', serial_num_router, place,
+                         expect_string='BAIKAL #')
+            for int_number, new_mac in zip(int_numbers, new_macs_sn):
+                send_command(connect, f'setenv {int_number} {new_mac}', serial_num_router, place,
+                             expect_string='BAIKAL #')
+                sn_macs.append(new_mac)
+            return sn_macs
+        else:
+            return existing_macs_sn
 
     def install_software(connect, wait_time, phase, sn, stend, place):
         """
@@ -678,6 +724,12 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['sata_info'] = init_disk(connect, sn, stend, place)
 
+                output_file.write(f'Прописывание MAC адресов и серийного номера на устройство {device_num}...\n')
+                output_file.flush()
+                logger_script.info(f'Прописывание MAC адресов и серийного номера на устройство',
+                                   extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
+                result[f'device_num_{device_num}']['macs_sn_set_result'] = uboot_macs_set(connect, sn, place)
+
                 output_file.write(f'Настройка Bootmenu устройства {device_num}...\n')
                 output_file.flush()
                 logger_script.info(f'Настройка Bootmenu устройства',
@@ -739,15 +791,19 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['ping_result'] = ports_check(connect, ports_check_cmds,
                                                                                 device['port'] - 230, sn, stend, place)
-
-                output_file.write(f'Удаление разделов на устройстве {device_num}...\n')
-                output_file.flush()
-                logger_script.info(f'Удаление разделов на устройстве',
-                                   extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                result[f'device_num_{device_num}']['erase_disk_result'] = erase_disk(connect, sn, stend, place)
+                if nmc_ports_count == 0:
+                    output_file.write(f'Удаление разделов на устройстве {device_num}...\n')
+                    output_file.flush()
+                    logger_script.info(f'Удаление разделов на устройстве',
+                                       extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
+                    result[f'device_num_{device_num}']['erase_disk_result'] = erase_disk(connect, sn, stend, place)
+                else:
+                    result[f'device_num_{device_num}'][
+                        'erase_disk'] = 'Удаление разделов не проводилось, так как исполнение с NMC модулем'
 
                 output_file.write(f'Создание протокола проверки изделия для устройства {device_num}...')
-                logger_script.info(f'Создание протокола проверки изделия для устройства', extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
+                logger_script.info(f'Создание протокола проверки изделия для устройства',
+                                   extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 create_protocol(device_num, sn, modification, result)
 
                 result[f'device_num_{device_num}']['error'] = 'False'  # признак не сработавшего исключения
@@ -986,12 +1042,14 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                         error_code = '999'
 
                     output_file.write(f'>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
-                    output_file.write(f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
+                    output_file.write(
+                        f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
                     output_file.write(f'Результат проверки USB портов: {flash_result}\n')
                     output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
                     update_history_db(serial_num_board, f'СТЕНД_ПСИ, плата закончиала работу с ошибкой {error_code}!')
                     logger_script.error(
-                        f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}', extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
+                        f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}',
+                        extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
             else:
                 if flash_result == 'Flash накопители найдены' and \
                         losses == '0% packet loss':

@@ -2,7 +2,7 @@ hw_platform_check: False
 hdd_present: False
 
 # количество портов NMC, которые должны определиться устройством. 0 если АП без NMC.
-nmc_ports_count: 0
+nmc_ports_count: 2
 
 # логирование, поддерживаются уровни 15(verbose, использовать только для отладки на одном устройстве) и 20(info)
 log_level: 20
