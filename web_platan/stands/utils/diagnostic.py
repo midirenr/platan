@@ -185,6 +185,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     output_file.write('Сервис не удается запустить\n'.format(service))
                     output_file.flush()
                     output_file.close()
+                    raise CustomError(f'Сервис {service} не удается запустить')
                 else:
                     logger_stend.info(f'Cервис {service} запущен', extra={'stend': f'{stend}'})
                     output_file.write('Сервис {} запущен\n'.format(service))
@@ -905,7 +906,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     except CustomError as e:
         logger_stend.error(e)
         output_file.close()
-        sys.exit()
+        raise
     logger_stend.info('Ip хоста успешно получен...', extra={'stend': f'{stend}'})
 
     output_file.write('Проверка подключения к БД...\n')
@@ -917,7 +918,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     except OperationalError:
         logger_stend.error(f'Не удается подключиться к базе MAC адресов, выполнение программы невозможно')
         output_file.close()
-        sys.exit()
+        raise
     logger_stend.info('Подключение к БД успешно!', extra={'stend': f'{stend}'})
     output_file.write('Подключение к БД успешно!\n')
     output_file.flush()
@@ -942,10 +943,8 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     for i in range(len(result_list)):
         result.update(result_list[i])
 
-    output_file.close()
     # вывод результатов теста на экран
     for dev_num in range(1, len(result) + 1):
-        output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
         serial_num_board = board_serial_number_list[int(dev_num) - 1]
         place = board_serial_number_list.index(serial_num_board) + 1
         output_file.write(f'\nРезультат для устройства {dev_num}:\n')
@@ -953,16 +952,19 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         if 'неизвестная ошибка' in result[f'device_num_{dev_num}']['error']:
             output_file.write('>>>Неуспех. Возникла неизвестная ошибка<<<\n')
             output_file.flush()
+            output_file.close()
 
             # serial_num_board = self.serial_num_lst_2[int(dev_num) - 1]
             logger_script.error('Устройство закончило работу с неизвестной ошибкой',
                                 extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
             SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code='666')
             update_history_db(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с неизвестной ошибкой!')
+            raise ('СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с неизвестной ошибкой!')
         elif 'Ошибка c устройством' in result[f'device_num_{dev_num}']['error']:
             error_string = result[f'device_num_{dev_num}']['error_details'][0][0]
             output_file.write(f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
             output_file.flush()
+            output_file.close()
 
             # serial_num_board = self.serial_num_lst_2[dev_num - 1]
             error_code = result[f'device_num_{dev_num}']['error_details'][0][2]
@@ -971,6 +973,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             # print(error_code)
             SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code=error_code)
             update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
+            raise (f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
         else:
             flash_result = result[f'device_num_{dev_num}']['flash_check_result'][1]
             losses = re.findall(r'\d+% packet loss', result[f'device_num_{dev_num}']['ping_result'])[0]
@@ -985,24 +988,21 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                         ext_slot_in_result == 'Внутренний HDD найден' and \
                         losses == '0% packet loss':
                     # serial_num_board = self.serial_num_lst_2[dev_num - 1]
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write(f'Создание карточки изделия для устройства {dev_num}...\n')
                     output_file.flush()
                     Devices.create_device(serial_num_board)
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write('\n>>>Карточка изделия создана!<<<\n')
                     output_file.flush()
                     Devices.update_diag(serial_num_board)
                     SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
                     update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write('\n>>>Диагностика успешно пройдена!<<<\n')
                     output_file.flush()
                     logger_script.info('Устройство закончило работу без ошибок!',
                                        extra={'sn': f'{serial_num_board}', 'stend': f'{stend}',
                                               'place': f'{place}'})
+                    output_file.close()
                 else:
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
                     output_file.flush()
                     serial_num_board = board_serial_number_list[dev_num - 1]
@@ -1027,7 +1027,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code=error_code)
                     update_history_db(serial_num_board,
                                       f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write(
                         f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
                     output_file.write(f'Результат проверки USB портов: {flash_result}\n')
@@ -1036,11 +1035,12 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     logger_script.error(
                         f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}',
                         extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
+                    output_file.close()
+                    raise
             else:
                 if flash_result == 'Flash накопители найдены' and \
                         losses == '0% packet loss':
                     serial_num_board = board_serial_number_list[dev_num - 1]
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write(f'Создание карточки изделия для устройства {dev_num}...\n')
                     output_file.flush()
                     Devices.create_device(serial_num_board)
@@ -1050,11 +1050,10 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     serial_num_board = board_serial_number_list[dev_num - 1]
                     SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
                     update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write('\n>>>Диагностика успешно пройдена!<<<\n')
                     output_file.flush()
+                    output_file.close()
                 else:
-                    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
                     output_file.write('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
                     output_file.flush()
                     serial_num_board = board_serial_number_list[dev_num - 1]
@@ -1064,7 +1063,8 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     output_file.write(f'Результат проверки USB портов: {flash_result}\n')
                     output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
                     output_file.flush()
-        output_file.close()
+                    output_file.close()
+                    raise
         # запись сырых результатов в файл
     current_time = str(datetime.now())[:-7].replace(':', '-')
     with open(f'logs/diagnostic/raw_results/raw_results-{current_time}.yaml', 'w') as f:
@@ -1077,5 +1077,3 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     logger_debag_3.removeHandler(log_d_3)
     logger_debag_4.removeHandler(log_d_4)
     logger_debag_5.removeHandler(log_d_5)
-
-    output_file.close()

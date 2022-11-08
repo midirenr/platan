@@ -166,9 +166,14 @@ def stand_visual_inspection_page(request):
 
 @group_required('Стенд диагностики')
 def stand_diagnostic_page(request):
-    output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
-    output_file.close()
     form = StandDiagnostic()
+
+    try:
+        output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
+        output_file.close()
+    except:
+        return render(request, 'stand-diagnostic.html', context={'is_busy': True})
+
     if request.method == 'POST':
         form = StandDiagnostic(request.POST)
         if form.is_valid():
