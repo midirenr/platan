@@ -214,7 +214,14 @@ def stand_diagnostic_page(request):
 @group_required('Стенд ПСИ')
 def stand_pci_page(request):
     form = StandPCI()
-    if 'pci_start' in request.POST and request.method == 'POST':
+
+    try:
+        output_file = open('stands/templates/ajax/pci_output.html', 'w', encoding='utf-8')
+        output_file.close()
+    except:
+        return render(request, 'stand-pci.html', context={'is_busy': True})
+
+    if request.method == 'POST':
         form = StandPCI(request.POST)
 
         if form.is_valid():

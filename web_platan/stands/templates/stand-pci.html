@@ -77,6 +77,14 @@
     </div>
 </form>
 
+    {% if is_busy %}
+        <script>
+<!--Сделать редирект на stand_pci_2..3..4.... при необходимости-->
+        alert('Стенд диагностики в настоящее время используется!')
+        window.location.href = '/ '
+        </script>
+    {% endif %}
+
 <script>
     function clearErrors() {
         $('#router_serial_number_1_error').remove();

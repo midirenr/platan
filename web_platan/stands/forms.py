@@ -254,7 +254,7 @@ class StandPCI(forms.Form):
             self.cleaned_data['router_serial_number_4'],
             self.cleaned_data['router_serial_number_5']]
 
-        for i in range(router_count):
+        for i in range(int(router_count)):
             if serial_numbers[i][4:6] != '10':
                 self.errors['board_serial_number_1'] = self.error_class([f'Серийный номер указан неправильно!'
                                                                          f'\nОтсканируйте повторно.'])
