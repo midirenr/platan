@@ -31,6 +31,7 @@ def history_page(request):
 def statistic_page(request):
     form = StatisticForm()
     if request.method == "POST":
+        boards = Repair.get_not_repair_board()
         form = StatisticForm(data=request.POST)
         date_time = request.POST.get('date_time')
         statistic = Statistic.get_statistic(date_time)
@@ -38,12 +39,14 @@ def statistic_page(request):
                                       'stand_diagnostic': 0,
                                       'stand_board_case': 0,
                                       'stand_PCI': 0,
-                                      'stand_package': 0}
+                                      'stand_package': 0,
+                                      'stand_repair': boards['Исток']}
         returnable_statistic_tsi = {'stand_visual_inspection': 0,
                                     'stand_diagnostic': 0,
                                     'stand_board_case': 0,
                                     'stand_PCI': 0,
-                                    'stand_package': 0}
+                                    'stand_package': 0,
+                                    'stand_repair': boards['Исток']}
 
         for stat in statistic:
             if stat.manufacturer == "Исток":
@@ -57,6 +60,8 @@ def statistic_page(request):
                     returnable_statistic_istok['stand_PCI'] = returnable_statistic_istok['stand_PCI'] + 1
                 if stat.stand == "Стенд упаковки":
                     returnable_statistic_istok['stand_package'] = returnable_statistic_istok['stand_package'] + 1
+                if stat.stand == "Стенд ремонта":
+                    returnable_statistic_istok['stand_repair'] = returnable_statistic_istok['stand_repair'] + 1
             if stat.manufacturer == "ТСИ":
                 if stat.stand == "Стенд визуального осмотра":
                     returnable_statistic_tsi['stand_visual_inspection'] = returnable_statistic_tsi['stand_visual_inspection'] + 1
@@ -68,12 +73,35 @@ def statistic_page(request):
                     returnable_statistic_tsi['stand_PCI'] = returnable_statistic_tsi['stand_PCI'] + 1
                 if stat.stand == "Стенд упаковки":
                     returnable_statistic_tsi['stand_package'] = returnable_statistic_tsi['stand_package'] + 1
+                if stat.stand == "Стенд ремонта":
+                    returnable_statistic_tsi['stand_repair'] = returnable_statistic_tsi['stand_repair'] + 1
 
         return render(request, 'statistic.html', context={'statistic_istok': returnable_statistic_istok,
                                                           'statistic_tsi': returnable_statistic_tsi,
                                                           'form': form})
-
     return render(request, 'statistic.html', context={'form': form})
+
+
+@group_required('Техническое бюро')
+def repair_page(request):
+    form = RepairForm()
+    if 'repair_btn' not in request.POST and request.method == "POST":
+        form = RepairForm(data=request.POST)
+        if form.is_valid():
+            serial_number = request.POST.get('serial_number')
+            errors = Repair.get_errors(serial_number)
+            return render(request, 'stand-repair.html', context={'errors': errors, 'form': form})
+
+    if 'repair_btn' in request.POST and request.method == "POST":
+        form = RepairForm(data=request.POST)
+        if form.is_valid():
+            serial_number = request.POST.get('serial_number')
+            Repair.new_note(serial_number, 'ПЛАТА ПРОШЛА РЕМОНТ', is_repair=str(datetime.now().date()))
+            History.new_note(serial_number, 'ПЛАТА ПРОШЛА РЕМОНТ')
+            errors = Repair.get_errors(serial_number)
+            return render(request, 'stand-repair.html', context={'errors': errors, 'form': form})
+
+    return render(request, 'stand-repair.html', context={'form': RepairForm()})
 
 
 @group_required('Техническое бюро')

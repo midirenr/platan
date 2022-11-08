@@ -100,6 +100,13 @@
                         {% endif %}
 
 
+                        {% if request.path == '/repair/' %}
+                            <li><a class="active" href="{% url 'stand-repair' %}">Стенд ремонта</a></li>
+                        {% else %}
+                            <li><a href="{% url 'stand-repair' %}">Стенд ремонта</a></li>
+                        {% endif %}
+
+
                         {% if user.is_superuser %}
                             {% if request.path == '/history/' %}
                                 <li><a class="active" href="{% url 'history' %}">История девайса</a></li>

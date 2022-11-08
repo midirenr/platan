@@ -5,6 +5,19 @@ from django.core.exceptions import ValidationError
 from .models import *
 
 
+class RepairForm(forms.Form):
+    serial_number = forms.CharField(min_length=14, max_length=14)
+
+    def clean(self):
+        super(RepairForm, self).clean()
+        serial_number = self.cleaned_data['serial_number']
+        if not Repair.check_note(serial_number):
+            self.errors['serial_number'] = self.error_class([f'Серийный номер устройства {serial_number}'
+                                                             f' отсутствует в списке плат подлежащих ремонту'])
+            return self.cleaned_data
+        return self.cleaned_data
+
+
 class HistoryForm(forms.Form):
     serial_number = forms.CharField(min_length=14, max_length=14)
 

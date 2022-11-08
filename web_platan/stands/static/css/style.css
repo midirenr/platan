@@ -368,6 +368,12 @@ border: 3px solid #6767e1
     cursor: pointer;
 }
 
+#repair-button
+{
+    width: 100%;
+    cursor: pointer;
+}
+
 .input-board-serial-number, .input-case-serial-number
 {
     width: 100%;

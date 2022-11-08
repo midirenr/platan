@@ -73,6 +73,9 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         Добавление в базу данных информации о статусе прохождении стенда
         """
         History.new_note(serial_number, msg)
+        if msg != 'СТЕНД_ПСИ, плата закончиала работу без ошибок!':
+            Repair.new_note(serial_number, msg)
+
 
     def tcp_to_serial_bridge_restart(board_count):
         """

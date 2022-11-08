@@ -8,8 +8,10 @@ urlpatterns = [
     path('stand-visual-inspection/', stand_visual_inspection_page, name='stand-visual-inspection'),
     path('stand-diagnostic/', stand_diagnostic_page, name='stand-diagnostic'),
     path('stand-pci/', stand_pci_page, name='stand-pci'),
+    path('repair/', repair_page, name='stand-repair'),
     path('history/', history_page, name='history'),
     path('statistic/', statistic_page, name='statistic'),
+
     # ajax
     path('ajax/load-modifications/', load_modifications, name='ajax_load_modifications'),
     path('ajax/diagnostic-output/', diagnostic_load_output, name='ajax_diag_output'),

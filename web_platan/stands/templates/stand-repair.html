@@ -5,10 +5,10 @@
 <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}">
 {% load static %}
 
-<title>История девайса</title>
+<title>Стенд ремонта</title>
 {% endblock %}
 
-{% block page_name %}<div align="center">История девайса</div>{% endblock %}
+{% block page_name %}<div align="center">Стенд ремонта</div>{% endblock %}
 
 {% block middle %}
 <form method="post" id="generateSerialNumbers" data-modifications-url="{% url 'ajax_load_modifications' %}">
@@ -19,24 +19,26 @@
 
     <br>
     <br>
-    <div class="generate-serial-numbers-label"><button type="submit" id="generate-serial-numbers-button" class="save btn btn-default" name="submit_btn">Поиск</button></div></form>
+    <div class="generate-serial-numbers-label"><button type="submit" id="generate-serial-numbers-button" class="save btn btn-default" name="submit_btn">Поиск</button></div>
     <br>
-{% if history %}
+{% if errors %}
 <table bgcolor=#6767e1 border="1" width="80%">
-<caption >История</caption>
+<caption >Информация для стенда ремонта</caption>
     <br>
     <tr>
     <th>Сообщение</th>
     <th>Дата</th>
     </tr>
-    {% for data in history %}
+    {% for data in errors %}
     <tr><td>{{ data.message }}</td><td>{{ data.date_time }}</td>
     {% endfor %}
 </table>
+    <br>
+    <br>
+    <div class="generate-serial-numbers-label" id="repair-button">
+        <button type="submit" class="save btn btn-default" name="repair_btn">Отремонтировать</button>
+    </div>
+</form>
+
 {% endif %}
-
-{% if QuerySet %}
- 123
-{% endif%}
-
 {% endblock %}

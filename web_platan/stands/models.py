@@ -2,6 +2,71 @@ from datetime import datetime
 from django.db import models
 
 
+class Repair(models.Model):
+    """
+    Модель таблицы repair, хранит ошибки операций на стендах
+
+    device_serial_num: серийный номер устройства
+    message: текст ошибки
+    date_time: дата/время прохождения стенда
+    """
+    device_serial_num = models.CharField(max_length=14)
+    message = models.CharField(max_length=255)
+    date_time = models.CharField(max_length=20)
+    date_time_repair = models.CharField(max_length=20)
+
+    class Meta:
+        db_table = 'repair'
+
+    @classmethod
+    def new_note(cls, serial_number, msg, is_repair='False'):
+        new_note = cls(device_serial_num=serial_number, message=msg, date_time=datetime.now().date(), date_time_repair=is_repair)
+        new_note.save()
+
+    @classmethod
+    def get_not_repair_board(cls):
+        serial_nums = cls.objects.filter(date_time_repair='False')
+        boards = {"Исток": 0,
+                  "EMS Expert": 0,
+                  "ТМИ": 0,
+                  "Альт Мастер": 0,
+                  "ТСИ": 0,
+                  "Резанит": 0}
+
+        for serial_num in serial_nums:
+            if serial_num.device_serial_num[6:8] == "01":
+                boards["Исток"] = boards["Исток"] + 1
+            if serial_num.device_serial_num[6:8] == "02":
+                boards["EMS Expert"] = boards["EMS Expert"] + 1
+            if serial_num.device_serial_num[6:8] == "03":
+                boards["ТМИ"] = boards["ТМИ"] + 1
+            if serial_num.device_serial_num[6:8] == "04":
+                boards["Альт Мастер"] = boards["Альт Мастер"] + 1
+            if serial_num.device_serial_num[6:8] == "05":
+                boards["ТСИ"] = boards["ТСИ"] + 1
+            if serial_num.device_serial_num[6:8] == "06":
+                boards["Резанит"] = boards["Резанит"] + 1
+
+        return boards
+
+    @classmethod
+    def check_note(cls, serial_num):
+        if cls.objects.filter(device_serial_num=serial_num).exists():
+            return True
+        else:
+            return False
+
+    @classmethod
+    def get_errors(cls, serial_num: str) -> list:
+        """
+        Функция возвращает историю устройства по серийному номеру
+
+        serial_num: серийный номер устройства
+        """
+
+        return cls.objects.filter(device_serial_num=serial_num)
+
+
 class Devices(models.Model):
     """
     Модель представляет таблицу device
@@ -337,8 +402,7 @@ class Statistic(models.Model):
         if serial_num[6:8] == "06":
             manufacturer = "Резанит"
 
-        date_time = datetime.now().date()
-        note = cls(manufacturer=manufacturer, stand=stand, date_time=date_time)
+        note = cls(manufacturer=manufacturer, stand=stand, date_time=datetime.now().date())
         note.save()
 
     @classmethod

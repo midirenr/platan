@@ -74,8 +74,14 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     def update_history_db(serial_number, msg):
         """
         Добавление в базу данных информации о статусе прохождении стенда
+        //
+        Добавляет в таблицу repair информацию об ошибке
+        //
+        Добавляет запись в статистику
         """
         History.new_note(serial_number, msg)
+        if msg != 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!':
+            Repair.new_note(serial_number, msg)
 
     def tcp_to_serial_bridge_restart(board_count):
         """
@@ -1049,7 +1055,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     Devices.update_diag(serial_num_board)
                     serial_num_board = board_serial_number_list[dev_num - 1]
                     SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
-                    update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
+                    update_history_db(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
                     output_file.write('\n>>>Диагностика успешно пройдена!<<<\n')
                     output_file.flush()
                     output_file.close()
