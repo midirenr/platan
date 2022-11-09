@@ -20,9 +20,24 @@ class Repair(models.Model):
 
     @classmethod
     def new_note(cls, serial_number, msg, is_repair='False'):
-        new_note = cls(device_serial_num=serial_number, message=msg, date_time=datetime.now().date(), date_time_repair=is_repair)
-        new_note.save()
+        if cls.objects.get(device_serial_num=serial_number).exists():
+            note = cls.objects.get(device_serial_num=serial_number)
+            note.message = msg
+            note.date_time = datetime.now().date()
+            note.date_time_repair = "False"
+            note.save()
+        else:
+            new_note = cls(device_serial_num=serial_number,
+                           message=msg,
+                           date_time=datetime.now().date(),
+                           date_time_repair=is_repair)
+            new_note.save()
 
+    @classmethod
+    def repaired(cls, serial_num):
+        note = cls.objects.get(device_serial_num=serial_num)
+        note.date_time_repair = datetime.now().date()
+        note.save()
     @classmethod
     def get_not_repair_board(cls):
         serial_nums = cls.objects.filter(date_time_repair='False')
@@ -51,20 +66,15 @@ class Repair(models.Model):
 
     @classmethod
     def check_note(cls, serial_num):
-        if cls.objects.filter(device_serial_num=serial_num).exists():
+        if cls.objects.filter(device_serial_num=serial_num, date_time_repair="False").exists():
             return True
         else:
             return False
 
     @classmethod
     def get_errors(cls, serial_num: str) -> list:
-        """
-        Функция возвращает историю устройства по серийному номеру
 
-        serial_num: серийный номер устройства
-        """
-
-        return cls.objects.filter(device_serial_num=serial_num)
+        return cls.objects.filter(device_serial_num=serial_num, date_time_repair="False")
 
 
 class Devices(models.Model):

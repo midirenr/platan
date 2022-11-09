@@ -46,7 +46,7 @@ def statistic_page(request):
                                     'stand_board_case': 0,
                                     'stand_PCI': 0,
                                     'stand_package': 0,
-                                    'stand_repair': boards['Исток']}
+                                    'stand_repair': boards['ТСИ']}
 
         for stat in statistic:
             if stat.manufacturer == "Исток":
@@ -84,22 +84,70 @@ def statistic_page(request):
 
 @group_required('Техническое бюро')
 def repair_page(request):
-    form = RepairForm()
+    form = RepairForm(request.POST)
     if 'repair_btn' not in request.POST and request.method == "POST":
         form = RepairForm(data=request.POST)
         if form.is_valid():
             serial_number = request.POST.get('serial_number')
             errors = Repair.get_errors(serial_number)
-            return render(request, 'stand-repair.html', context={'errors': errors, 'form': form})
+            about_errors = "Неизвестная ошибка, обратитесь к разработчику"
 
+            for error in errors:
+                if error.message == "000":
+                    about_errors = "Ошибок нет"
+                elif error.message == "201":
+                    about_errors = "Данная ошибка говорит о том, что не удалось начать установку ПО"
+                elif error.message == "202":
+                    about_errors = "Данная ошибка говорит о том, что в процессе установки в консоли оказалась строка," \
+                                   " которую не ожидал скрипт"
+                elif error.message == "401":
+                    about_errors = "Данная ошибка говорит о том, что установка ПО прошла некоректно и программа" \
+                                   " не видит приглашение залогиниться."
+                elif error.message == "403":
+                    about_errors = "Данная ошибка говорит о том, что произошла ошибка с файловой системой на диске."
+                elif error.message == "404":
+                    about_errors = "Данная ошибка говорит о том, что не появилось стартовое окно загрузки" \
+                                   " маршрутизатора."
+                elif error.message == "501":
+                    about_errors = "Данная ошибка говорит о том, что в консоли U-BOOT не было инициализирован" \
+                                   " внутрунный SSD-накопитель."
+                elif error.message == "666":
+                    about_errors = "Данная ошибка говорит о том, что в процессе выполнения скрипта установки" \
+                                   " и проверки маршрутизатор возникла ошибка, которая неизвестна."
+                elif error.message == "009":
+                    about_errors = "Данная ошибка говорит о том, что системой не определился HDD."
+                elif error.message == "090":
+                    about_errors = "Данная ошибка говорит о том, что системой не определился(-ись) flash."
+                elif error.message == "900":
+                    about_errors = "Данная ошибка говорит о том, что возникла проблема с сетевыми портами" \
+                                   " маршрутизатора."
+                elif error.message == "099":
+                    about_errors = "Данная ошибка говорит о том, что системой не определился HDD" \
+                                   " и не определился(-ись) flash."
+                elif error.message == "909":
+                    about_errors = "Данная ошибка говорит о том, что системой не определился HDD" \
+                                   " и возникла проблема с сетевыми портами маршрутизатора."
+                elif error.message == "990":
+                    about_errors = "Данная ошибка говорит о том, что системой не определился(-ись)" \
+                                   " flash и возникла проблема с сетевыми портами маршрутизатора."
+                elif error.message == "999":
+                    about_errors = "Данная ошибка говорит о том, что системой не определился HDD, системой не" \
+                                   " определился(-ись) flash и возникла проблема с сетевыми портами маршрутизатора."
+
+            history = History.get_history(serial_number)
+
+            return render(request, 'stand-repair.html', context={'about_errors': about_errors,
+                                                                 'errors': errors,
+                                                                 'history': history,
+                                                                 'form': form})
+        return render(request, 'stand-repair.html', context={'form': form})
     if 'repair_btn' in request.POST and request.method == "POST":
         form = RepairForm(data=request.POST)
         if form.is_valid():
             serial_number = request.POST.get('serial_number')
-            Repair.new_note(serial_number, 'ПЛАТА ПРОШЛА РЕМОНТ', is_repair=str(datetime.now().date()))
             History.new_note(serial_number, 'ПЛАТА ПРОШЛА РЕМОНТ')
-            errors = Repair.get_errors(serial_number)
-            return render(request, 'stand-repair.html', context={'errors': errors, 'form': form})
+            Repair.repaired(serial_number)
+            return render(request, 'stand-repair.html', context={'successful': True, 'form': RepairForm()})
 
     return render(request, 'stand-repair.html', context={'form': RepairForm()})
 

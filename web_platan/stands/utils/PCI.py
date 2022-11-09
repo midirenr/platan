@@ -1027,6 +1027,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             logger_script.error(f'Устройство закончило работу с ошибкой: {error_string}',
                                 extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
             update_history_db(serial_num_board, f'СТЕНД_ПСИ, плата закончиала работу с ошибкой {error_code}!')
+            Repair.new_note(serial_num_board, error_code)
 
         else:
             flash_result = result[f'device_num_{dev_num}']['flash_check_result'][1]
@@ -1074,6 +1075,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     output_file.write(f'Результат проверки USB портов: {flash_result}\n')
                     output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
                     update_history_db(serial_num_board, f'СТЕНД_ПСИ, плата закончиала работу с ошибкой {error_code}!')
+                    Repair.new_note(serial_num_board, error_code)
                     logger_script.error(
                         f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}',
                         extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})

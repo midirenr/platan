@@ -979,6 +979,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             # print(error_code)
             SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code=error_code)
             update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
+            Repair.new_note(serial_num_board, error_code)
             raise (f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
         else:
             flash_result = result[f'device_num_{dev_num}']['flash_check_result'][1]
@@ -988,89 +989,61 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 ext_slot_in_result = result[f'device_num_{dev_num}']['hdd_check_result'][2]
             elif nmc_ports_count != 0:
                 ext_slot_out_result = result[f'device_num_{dev_num}']['nmc_check_result'][1]
-            if hdd_present or nmc_ports_count != 0:
-                if ext_slot_out_result in ['Внешний HDD найден', 'Все порты NMC модуля найдены'] and \
-                        flash_result == 'Flash накопители найдены' and \
-                        ext_slot_in_result == 'Внутренний HDD найден' and \
-                        losses == '0% packet loss':
-                    # serial_num_board = self.serial_num_lst_2[dev_num - 1]
-                    output_file.write(f'Создание карточки изделия для устройства {dev_num}...\n')
-                    output_file.flush()
-                    Devices.create_device(serial_num_board)
-                    output_file.write('\n>>>Карточка изделия создана!<<<\n')
-                    output_file.flush()
-                    Devices.update_diag(serial_num_board)
-                    SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
-                    update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
-                    output_file.write('\n>>>Диагностика успешно пройдена!<<<\n')
-                    output_file.flush()
-                    logger_script.info('Устройство закончило работу без ошибок!',
-                                       extra={'sn': f'{serial_num_board}', 'stend': f'{stend}',
-                                              'place': f'{place}'})
-                    output_file.close()
-                else:
-                    output_file.write('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
-                    output_file.flush()
-                    serial_num_board = board_serial_number_list[dev_num - 1]
-                    if ext_slot_out_result in ['Внешний HDD не найден',
-                                               'По крайней мере один порт NMC модуля не найден']:
-                        error_code = '009'
-                    elif flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны':
-                        error_code = '090'
-                    elif losses == '100% packet loss':
-                        error_code = '900'
-                    elif ext_slot_out_result in ['Внешний HDD не найден',
-                                                 'По крайней мере один порт NMC модуля не найден'] and flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны':
-                        error_code = '099'
-                    elif ext_slot_out_result in ['Внешний HDD не найден',
-                                                 'По крайней мере один порт NMC модуля не найден'] and losses == '100% packet loss':
-                        error_code = '909'
-                    elif flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны' and losses == '100% packet loss':
-                        error_code = '990'
-                    elif ext_slot_out_result in ['Внешний HDD не найден',
-                                                 'По крайней мере один порт NMC модуля не найден'] and flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны' and losses == '100% packet loss':
-                        error_code = '999'
-                    SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code=error_code)
-                    update_history_db(serial_num_board,
-                                      f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
-                    output_file.write(
-                        f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
-                    output_file.write(f'Результат проверки USB портов: {flash_result}\n')
-                    output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
-                    output_file.flush()
-                    logger_script.error(
-                        f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}',
-                        extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
-                    output_file.close()
-                    raise
+            if ext_slot_out_result in ['Внешний HDD найден', 'Все порты NMC модуля найдены'] and \
+                    flash_result == 'Flash накопители найдены' and \
+                    ext_slot_in_result == 'Внутренний HDD найден' and \
+                    losses == '0% packet loss':
+                # serial_num_board = self.serial_num_lst_2[dev_num - 1]
+                output_file.write(f'Создание карточки изделия для устройства {dev_num}...\n')
+                output_file.flush()
+                Devices.create_device(serial_num_board)
+                output_file.write('\n>>>Карточка изделия создана!<<<\n')
+                output_file.flush()
+                Devices.update_diag(serial_num_board)
+                SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
+                update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
+                output_file.write('\n>>>Диагностика успешно пройдена!<<<\n')
+                output_file.flush()
+                logger_script.info('Устройство закончило работу без ошибок!',
+                                   extra={'sn': f'{serial_num_board}', 'stend': f'{stend}',
+                                          'place': f'{place}'})
+                output_file.close()
             else:
-                if flash_result == 'Flash накопители найдены' and \
-                        losses == '0% packet loss':
-                    serial_num_board = board_serial_number_list[dev_num - 1]
-                    output_file.write(f'Создание карточки изделия для устройства {dev_num}...\n')
-                    output_file.flush()
-                    Devices.create_device(serial_num_board)
-                    output_file.write('\n>>>Карточка изделия создана!<<<\n')
-                    output_file.flush()
-                    Devices.update_diag(serial_num_board)
-                    serial_num_board = board_serial_number_list[dev_num - 1]
-                    SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
-                    update_history_db(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
-                    output_file.write('\n>>>Диагностика успешно пройдена!<<<\n')
-                    output_file.flush()
-                    output_file.close()
-                else:
-                    output_file.write('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
-                    output_file.flush()
-                    serial_num_board = board_serial_number_list[dev_num - 1]
-                    SerialNumBoard.set_visual_inspection(serial_num_board, valid=False)
-                    update_history_db(serial_num_board,
-                                      f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {flash_check}/{losses}!')
-                    output_file.write(f'Результат проверки USB портов: {flash_result}\n')
-                    output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
-                    output_file.flush()
-                    output_file.close()
-                    raise
+                output_file.write('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
+                output_file.flush()
+                serial_num_board = board_serial_number_list[dev_num - 1]
+                if ext_slot_out_result in ['Внешний HDD не найден',
+                                           'По крайней мере один порт NMC модуля не найден']:
+                    error_code = '009'
+                elif flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны':
+                    error_code = '090'
+                elif losses == '100% packet loss':
+                    error_code = '900'
+                elif ext_slot_out_result in ['Внешний HDD не найден',
+                                             'По крайней мере один порт NMC модуля не найден'] and flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны':
+                    error_code = '099'
+                elif ext_slot_out_result in ['Внешний HDD не найден',
+                                             'По крайней мере один порт NMC модуля не найден'] and losses == '100% packet loss':
+                    error_code = '909'
+                elif flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны' and losses == '100% packet loss':
+                    error_code = '990'
+                elif ext_slot_out_result in ['Внешний HDD не найден',
+                                             'По крайней мере один порт NMC модуля не найден'] and flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны' and losses == '100% packet loss':
+                    error_code = '999'
+                SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code=error_code)
+                update_history_db(serial_num_board,
+                                  f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
+                Repair.new_note(serial_num_board, error_code)
+                output_file.write(
+                    f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
+                output_file.write(f'Результат проверки USB портов: {flash_result}\n')
+                output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
+                output_file.flush()
+                logger_script.error(
+                    f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}',
+                    extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
+                output_file.close()
+                raise
         # запись сырых результатов в файл
     current_time = str(datetime.now())[:-7].replace(':', '-')
     with open(f'logs/diagnostic/raw_results/raw_results-{current_time}.yaml', 'w') as f:

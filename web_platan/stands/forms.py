@@ -13,7 +13,9 @@ class RepairForm(forms.Form):
         serial_number = self.cleaned_data['serial_number']
         if not Repair.check_note(serial_number):
             self.errors['serial_number'] = self.error_class([f'Серийный номер устройства {serial_number}'
-                                                             f' отсутствует в списке плат подлежащих ремонту'])
+                                                             f' отсутствует в списке плат подлежащих ремонту'
+                                                             f' или уже была отремонтирована'])
+            print("not valid")
             return self.cleaned_data
         return self.cleaned_data
 

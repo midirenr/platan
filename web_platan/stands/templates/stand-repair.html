@@ -15,30 +15,54 @@
     {% csrf_token %}
     <div class="generate-serial-numbers-label">Серийный номер</div>
     {{ form.serial_number }}
-    <div align="center" class="errors" id="router_serial_number_1_error">{{ form.serial_number.errors }}</div>
-
+    <div align="left" class="errors" id="device-serial-number-error">{{ form.serial_number.errors.as_text }}</div>
     <br>
     <br>
     <div class="generate-serial-numbers-label"><button type="submit" id="generate-serial-numbers-button" class="save btn btn-default" name="submit_btn">Поиск</button></div>
     <br>
 {% if errors %}
-<table bgcolor=#6767e1 border="1" width="80%">
-<caption >Информация для стенда ремонта</caption>
+<table bgcolor=#DCDCDC border="1" width="80%">
+<caption> Информация об ошибке </caption>
+    <br>
+    <tr>
+    <th>Код ошибки</th>
+    <th>Дата возникновения</th>
+    </tr>
+    {% for data in errors %}
+    <tr><td>{{ data.message }}</td><td>{{ data.date_time }}</td>
+    {% endfor %}
+</table>
+<br>
+<br>
+<table bgcolor=#DCDCDC border="1" width="80%">
+<caption >История платы</caption>
     <br>
     <tr>
     <th>Сообщение</th>
     <th>Дата</th>
     </tr>
-    {% for data in errors %}
+    {% for data in history %}
     <tr><td>{{ data.message }}</td><td>{{ data.date_time }}</td>
     {% endfor %}
 </table>
     <br>
     <br>
     <div class="generate-serial-numbers-label" id="repair-button">
+        <button onclick="about_error()" type="submit" class="save btn btn-default">Подробнее об ошибке</button>
         <button type="submit" class="save btn btn-default" name="repair_btn">Отремонтировать</button>
     </div>
 </form>
-
 {% endif %}
+
+{% if successful %}
+<script>alert('Плата помечена как отремонтированная!')</script>
+{% endif %}
+
+  <script>
+   function about_error() {
+        alert('{{about_errors}}')
+   }
+
+  </script>
+
 {% endblock %}
