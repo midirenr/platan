@@ -20,7 +20,7 @@ class Repair(models.Model):
 
     @classmethod
     def new_note(cls, serial_number, msg, is_repair='False'):
-        if cls.objects.get(device_serial_num=serial_number).exists():
+        if cls.objects.filter(device_serial_num=serial_number).exists():
             note = cls.objects.get(device_serial_num=serial_number)
             note.message = msg
             note.date_time = datetime.now().date()
@@ -118,20 +118,21 @@ class Devices(models.Model):
         """
         new_device = cls()
         new_device.save()
-        new_board = SerialNumBoard(serial_num_board=serial_num_board, device_id=new_device.id)
-        new_board.save()
-        new_device.serial_num_board_id = new_board.id
+        board = SerialNumBoard.objects.get(serial_num_board=serial_num_board)
+        board.device_id = new_device
+        board.save()
+        new_device.serial_num_board_id = board
         new_device.save()
 
         snmac_list = [serial_num_board]
         ethaddr_id_list = list()
-        macs = Macs.objects.filter(device_id="None")[:3]
+        macs = Macs.objects.filter(device_id__isnull=True)[:3]
 
         for mac in macs:
             snmac_list.append(mac.mac)
-            mac.device_id = new_device.id
+            mac.device_id = new_device
             mac.save()
-            ethaddr_id_list.append(mac.id)
+            ethaddr_id_list.append(mac)
 
         new_device.ethaddr_id = ethaddr_id_list[0]
         new_device.eth1addr_id = ethaddr_id_list[1]
@@ -145,7 +146,7 @@ class Devices(models.Model):
         """
         Функция меняет значение diag девайса в положение True по серийному номеру платы
         """
-        board_id = SerialNumBoard.objects.get(serial_num=serial_num)
+        board_id = SerialNumBoard.objects.get(serial_num_board=serial_num)
         device = cls.objects.get(serial_num_board_id=board_id.id)
         device.diag = True
         device.save()

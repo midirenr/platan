@@ -14,6 +14,7 @@ from django.db import connections
 
 from .docx_to_pdf import *
 from ..models import *
+from .output_file import *
 
 
 def run(board_count, modification, board_serial_number_list, host_ip):
@@ -56,12 +57,10 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         :param yaml_file: имя файла конфигурации
         :return: возвращает также имя файла конфигурации. Может отличаться от изначально введенного пользователем
         """
-        os.chdir('yamls/')
+        os.chdir('stands/utils/yamls')
         while True:
             if not yaml_file in filter(os.path.isfile, os.listdir(os.curdir)):
-                output_file.write('Отсутствует конфигурационный файл!\n')
-                output_file.flush()
-                output_file.close()
+                write_new_note_pci('Отсутствует конфигурационный файл!\n')
                 raise CustomError(f'Отсутствует конфигурационный файл!')
             else:
                 os.chdir('..')
@@ -90,11 +89,9 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 stdout=subprocess.PIPE).stdout.decode('utf-8'):
             logger_stend.error(f'Не удается запустить сервис tcp-to-serial-bridge-router{board_count}, \
                             выполнение программы невозможно', extra={'stend': f'{stend}'})
-            output_file.close()
             raise
         logger_stend.info(f'Cервис tcp-to-serial-bridge-router{board_count} запущен', extra={'stend': f'{stend}'})
-        output_file.write(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
-        output_file.flush()
+        write_new_note_pci(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
 
     def tcp_to_serial_bridge_restart_ssh(board_count):
         """
@@ -118,16 +115,13 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             if not 'active (running)' in command_status:
                 logger_stend.error(f'Не удается запустить сервис tcp-to-serial-bridge-router{board_count}, \
                             выполнение программы невозможно', extra={'stend': f'{stend}'})
-                output_file.write(f'Не удается запустить сервис tcp-to-serial-bridge-router_ssh')
-                output_file.flush()
+                write_new_note_pci(f'Не удается запустить сервис tcp-to-serial-bridge-router_ssh')
             else:
                 logger_stend.info(f'Cервис tcp-to-serial-bridge-router{board_count} запущен',
                                   extra={'stend': f'{stend}'})
-                output_file.write(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
-                output_file.flush()
+                write_new_note_pci(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
             ssh.disconnect()
         except:
-            output_file.close()
             raise CustomError('Что пошло не так! Проверьте подключение')
 
     def host_service_check(service):
@@ -136,23 +130,19 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         :param service: имя сервиса
         :return: ничего
         """
-        output_file.write('Проверка сервиса {}...\n'.format(service))
-        output_file.flush()
+        write_new_note_pci('Проверка сервиса {}...\n'.format(service))
         try:
             if subprocess.run(['pgrep', service]).returncode == 0:
-                output_file.write('Сервис {} включен\n'.format(service))
+                write_new_note_pci('Сервис {} включен\n'.format(service))
                 logger_stend.info('Сервис {} включен'.format(service), extra={'stend': f'{stend}'})
             else:
-                output_file.close()
                 raise CustomError(f'Проверьте состояние сервиса {service}, выполнение программы невозможно')
         except CustomError as e:
             logger_stend.error(e)
-            output_file.close()
             raise
         except:
             logger_stend.error(f'Ошибка при проверке состояния сервиса {service} \n %s' % traceback.format_exc(),
                                extra={'stend': f'{stend}'})
-            output_file.close()
             raise
 
     def host_service_check_ssh(service):
@@ -161,8 +151,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         :param service: имя сервиса
         :return: ничего
         """
-        output_file.write('Проверка сервиса {}...\n'.format(service))
-        output_file.flush()
+        write_new_note_pci('Проверка сервиса {}...\n'.format(service))
         try:
             host_config = {
                 'device_type': 'linux',
@@ -181,19 +170,15 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 if not 'active (running)' in command_status:
                     logger_stend.error(f'Сервис {service} не удается запустить, \
                             выполнение программы невозможно', extra={'stend': f'{stend}'})
-                    output_file.write('Сервис не удается запустить\n'.format(service))
-                    output_file.flush()
+                    write_new_note_pci('Сервис не удается запустить\n'.format(service))
                 else:
                     logger_stend.info(f'Cервис {service} запущен', extra={'stend': f'{stend}'})
-                    output_file.write('Сервис {} запущен\n'.format(service))
-                    output_file.flush()
+                    write_new_note_pci('Сервис {} запущен\n'.format(service))
             else:
                 logger_stend.info(f'Cервис {service} запущен', extra={'stend': f'{stend}'})
-                output_file.write('Сервис {} запущен\n'.format(service))
-                output_file.flush()
+                write_new_note_pci('Сервис {} запущен\n'.format(service))
             ssh.disconnect()
         except:
-            output_file.close()
             raise CustomError('Что пошло не так! Проверьте подключение')
 
     def send_command(connect, command, sn, place, timeout=10, expect_string='#', just_wait=False):
@@ -242,14 +227,12 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             if 'No link.' in output:
                 logger_script.error('No link. Проблема с соединением.',
                                     extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                output_file.close()
                 raise CustomErrorExtended(
                     ['No link. Проблема с соединением. Проверьте кабель и SFP-модуль.', f'ВЫВОД КОМАНД: {all_output}',
                      '406'])
             if expect_string not in output:
                 logger_script.error('Неожиданный вывод команды:' f'ВЫВОД КОМАНДЫ: {all_output}',
                                     extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                output_file.close()
                 raise CustomErrorExtended(['Неожиданный вывод команды', f'ВЫВОД КОМАНД: {all_output}', '202'])
 
         return all_output
@@ -267,11 +250,9 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         if phase == 'install' and 'Hit any key to stop autoboot' not in console_output:
             logger_script.error('Не удалось войти в U-BOOT...',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(
                 ['Не удалось войти в Uboot. Возможно BOOT LOOP!', f'ВЫВОД В КОНСОЛЬ: {console_output}', '404'])
         if phase == 'erase' and 'Hit any key to stop autoboot' not in console_output:
-            output_file.close()
             raise CustomErrorExtended(
                 ['Не удалось войти в Uboot при очистке flash', f'ВЫВОД В КОНСОЛЬ: {console_output}', '404'])
         connect.write(b'a')  # отправляем символ 'a' чтобы остановить таймер
@@ -375,7 +356,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         else:
             logger_script.error('SSD работает нестабильно!',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(
                 ['SSD работает нестабильно!', f'SSD удалось инициализировать {len(check_list)} раз из 6', '501'])
 
@@ -399,7 +379,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             try:
                 existing_mac = re.search(r'(\w\w:){5}\w\w', printenv_result).group()
             except AttributeError:
-                output_file.close()
                 raise CustomErrorExtended([f'При прописывании МАС адреса не обнаружен интерфейс {int_number} \
                     или его начальный МАС адрес'])
             existing_macs.append(existing_mac)
@@ -443,31 +422,26 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         elif phase == 'install' and 'Error: Install disk with label: INSTALLER not found' in console_output:
             logger_script.error('Не удалось обнаружить флешку с LABEL: INSTALLER',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(
                 ['Не удалось обнаружить флешку с LABEL: INSTALLER', f'ВЫВОД В КОНСОЛЬ: {console_output}', '403'])
         elif phase == 'install' and 'Error while generating lvm2 partitions' in console_output:
             logger_script.error('Возникли проблемы с разбиением диска на разделы',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(
                 ['Возникли проблемы с разбиением диска на разделы', f'ВЫВОД В КОНСОЛЬ: {console_output}', '402'])
         elif phase == 'install' and 'Disk too small' in console_output:
             logger_script.error('Возникли проблемы с определением размера SSD',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(
                 ['Возникли проблемы с определением размера SSD', f'ВЫВОД В КОНСОЛЬ: {console_output}', '408'])
         elif phase == 'install' and 'Lvm group vg0 already exists' in console_output:
             logger_script.error('На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(['На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD',
                                        f'ВЫВОД В КОНСОЛЬ: {console_output}', '410'])
         else:
             logger_script.error('Не удалось начать установку ПО по неизвестным причинам',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(
                 ['Не удалось начать установку ПО по неизвестным причинам', f'ВЫВОД В КОНСОЛЬ: {console_output}', '407'])
         start_installing_sw = connect.read_very_eager().decode('utf-8')
@@ -499,7 +473,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         else:
             logger_script.error('Неожиданное приглашение cli после установки ПО',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(['Неожиданное приглашение cli после установки ПО', f'PROMPT: {prompt}', '401'])
         return prompt
 
@@ -515,7 +488,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         if 'Kernel panic' in output_before_check:
             logger_script.error('При загрузке после установки ПО возник Kernel Panic',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(['При загрузке после установки ПО возник Kernel Panic',
                                        f'KERNEL PANIC TRACE: {output_before_check}', '409'])
         elif 'Waiting for full initialization of mprdaemon' in output_before_check:
@@ -538,7 +510,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             logger_script.error(
                 f'Маршрутизатор не загрузился после установки ПО, не найдено приглашение cli {failed_prompt_result}',
                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            output_file.close()
             raise CustomErrorExtended(['Маршрутизатор не загрузился после установки ПО, не найдено приглашение cli',
                                        f'PROMPT: {failed_prompt_result}',
                                        '401',
@@ -737,26 +708,17 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 place = board_serial_number_list.index(sn) + 1
                 result[f'device_num_{device_num}']['sn'] = sn
 
-                output_file.write(f'Вход в Uboot устройства {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Вход в Uboot устройства {device_num}...\n')
                 logger_script.info(f'Вход в Uboot устройства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['uboot_prompt'] = enter_uboot(connect, phase, sn, stend, place)
 
-                output_file.write(f'Инициализация SSD устойства {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Инициализация SSD устойства {device_num}...\n')
                 logger_script.info(f'Инициализация SSD устойства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['sata_info'] = init_disk(connect, sn, stend, place)
 
-                output_file.write(f'Прописывание MAC адресов и серийного номера на устройство {device_num}...\n')
-                output_file.flush()
-                logger_script.info(f'Прописывание MAC адресов и серийного номера на устройство',
-                                   extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                result[f'device_num_{device_num}']['macs_sn_set_result'] = uboot_macs_set(connect, sn, place)
-
-                output_file.write(f'Настройка Bootmenu устройства {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Настройка Bootmenu устройства {device_num}...\n')
                 logger_script.info(f'Настройка Bootmenu устройства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['bootmenu_1_install'] = set_bootmenu(connect, host_ip,
@@ -765,26 +727,23 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                                                                         master_password, phase, sn,
                                                                                         stend, place)
 
-                output_file.write(f'Установка ПО на устройство {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Установка ПО на устройство {device_num}...\n')
                 logger_script.info(f'Установка ПО на устройство',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 time.sleep(5)
-                install_software_timeout = 600
+                install_software_timeout = 900
                 result[f'device_num_{device_num}']['start_installing_sw'] = install_software(connect,
                                                                                              install_software_timeout,
                                                                                              phase, sn, stend, place)
 
-                output_file.write(f'Вход для проведения проверок на устройство {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Вход для проведения проверок на устройство {device_num}...\n')
                 logger_script.info(f'Вход для проведения проверок на устройство',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['post_install_check_result'] = post_install_check(connect, sn, stend,
                                                                                                      place)
 
                 if hdd_present:
-                    output_file.write(f'Проверка наличия HDD на устройстве {device_num}...\n')
-                    output_file.flush()
+                    write_new_note(f'Проверка наличия HDD на устройстве {device_num}...\n')
                     logger_script.info(f'Проверка наличия HDD на устройстве',
                                        extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                     result[f'device_num_{device_num}']['hdd_check_result'] = hdd_check(connect, sn, stend, place)
@@ -792,8 +751,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     result[f'device_num_{device_num}']['hdd_check_result'] = 'Исполнение без HDD, ' \
                                                                              'проверка наличия HDD не проводилась'
 
-                output_file.write(f'Проверка наличия 2-х Flash накопителей на устройстве {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Проверка наличия 2-х Flash накопителей на устройстве {device_num}...\n')
                 logger_script.info(f'Проверка наличия 2-х Flash накопителей на устройстве',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['flash_check_result'] = flash_check(connect, hdd_present,
@@ -803,30 +761,27 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                                                                        stend, place)
 
                 if nmc_ports_count != 0:
-                    output_file.write(f'Проверка NMC модуля на устройстве {device_num}...')
-                    output_file.flush()
+                    write_new_note(f'Проверка NMC модуля на устройстве {device_num}...')
                     result[f'device_num_{device_num}']['nmc_check_result'] = nmc_check(connect)
                 else:
                     result[f'device_num_{device_num}']['nmc_check_result'] = 'Исполнение без NMC модуля, проверка ' \
                                                                              'наличия NMC модуля не проводилась '
 
-                output_file.write(f'Проверка работоспособности портов на устройстве {device_num}...\n')
-                output_file.flush()
+                write_new_note(f'Проверка работоспособности портов на устройстве {device_num}...\n')
                 logger_script.info(f'Проверка работоспособности портов на устройстве',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['ping_result'] = ports_check(connect, ports_check_cmds,
                                                                                 device['port'] - 230, sn, stend, place)
-                if nmc_ports_count == 0:
-                    output_file.write(f'Удаление разделов на устройстве {device_num}...\n')
-                    output_file.flush()
-                    logger_script.info(f'Удаление разделов на устройстве',
-                                       extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                    result[f'device_num_{device_num}']['erase_disk_result'] = erase_disk(connect, sn, stend, place)
-                else:
-                    result[f'device_num_{device_num}'][
-                        'erase_disk'] = 'Удаление разделов не проводилось, так как исполнение с NMC модулем'
 
-                output_file.write(f'Создание протокола проверки изделия для устройства {device_num}...')
+                if nmc_ports_count == 0:
+                    write_new_note(f'Удаление разделов на диске {device_num}...\n')
+                    logger_script.info(f'Удаление разделов на диске',
+                                       extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
+                    result[f'device_num_{device_num}']['erase_disk'] = erase_disk(connect, sn, stend, place)
+                else:
+                    result[f'device_num_{device_num}']['erase_disk'] = 'Удаление разделов не проводилось, так как исполнение с NMC модулем'
+
+                write_new_note(f'Создание протокола проверки изделия для устройства {device_num}...')
                 logger_script.info(f'Создание протокола проверки изделия для устройства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 create_protocol(device_num, sn, modification, result)
@@ -879,7 +834,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         'КРПГ.465614.001-17': 'devices_sp_pci_2.yaml',
     }
 
-    output_file = open('platan/templates/ajax/pci_output.html', 'w', encoding='utf-8')
     y_f = modifications_config.get(modification)
     yaml_file = verify_yaml_name(y_f)
 
@@ -968,27 +922,22 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             params_netplan = yaml.safe_load(f)
     except CustomError as e:
         logger_stend.error(e)
-        output_file.close()
         raise
     logger_stend.info('Ip хоста успешно получен...', extra={'stend': f'{stend}'})
 
-    output_file.write('Проверка подключения к БД...\n')
-    output_file.flush()
+    write_new_note_pci('Проверка подключения к БД...\n')
     logger_stend.info('Проверка подключения к БД...', extra={'stend': f'{stend}'})
     try:
         db_conn = connections['default']
         test_connection = db_conn.cursor()
     except OperationalError:
         logger_stend.error(f'Не удается подключиться к базе MAC адресов, выполнение программы невозможно')
-        output_file.close()
         raise
     test_connection.close()
     logger_stend.info('Подключение к БД успешно!', extra={'stend': f'{stend}'})
-    output_file.write('Подключение к БД успешно!\n')
-    output_file.flush()
+    write_new_note_pci('Подключение к БД успешно!\n')
 
-    output_file.write('Включение tcp-to-serial мостов...\n')
-    output_file.flush()
+    write_new_note_pci('Включение tcp-to-serial мостов...\n')
     logger_stend.info('Включение tcp-to-serial мостов...', extra={'stend': f'{stend}'})
     with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
         bridge_restart_result = executor.map(tcp_to_serial_bridge_restart_ssh, list(range(1, int(board_count) + 1)))
@@ -1011,18 +960,15 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     for dev_num in range(1, len(result) + 1):
         serial_num_board = board_serial_number_list[int(dev_num) - 1]
         place = board_serial_number_list.index(serial_num_board) + 1
-        output_file.write(f'\nРезультат для устройства {dev_num}:\n')
-        output_file.flush()
+        write_new_note_pci(f'\nРезультат для устройства {dev_num}:\n')
         if 'неизвестная ошибка' in result[f'device_num_{dev_num}']['error']:
-            output_file.write('>>>Неуспех. Возникла неизвестная ошибка<<<\n')
-            output_file.flush()
+            write_new_note_pci('>>>Неуспех. Возникла неизвестная ошибка<<<\n')
             logger_script.error('Устройство закончило работу с неизвестной ошибкой',
                                 extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
             update_history_db(serial_num_board, 'СТЕНД_ПСИ, плата закончиала работу с неизвестной ошибкой!')
         elif 'Ошибка c устройством' in result[f'device_num_{dev_num}']['error']:
             error_string = result[f'device_num_{dev_num}']['error_details'][0][0]
-            output_file.write(f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
-            output_file.flush()
+            write_new_note_pci(f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
             error_code = result[f'device_num_{dev_num}']['error_details'][0][2]
             logger_script.error(f'Устройство закончило работу с ошибкой: {error_string}',
                                 extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
@@ -1042,8 +988,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                         flash_result == 'Flash накопители найдены' and \
                         ext_slot_in_result == 'Внутренний HDD найден' and \
                         losses == '0% packet loss':
-                    output_file.write(f'>>>ПСИ успешно пройдено<<< {dev_num}...\n')
-                    output_file.flush()
+                    write_new_note_pci(f'>>>ПСИ успешно пройдено<<< {dev_num}...\n')
                     Devices.update_date_time_pci(serial_num_board)
                     update_history_db(serial_num_board, f'СТЕНД_ПСИ, плата закончиала работу без ошибок!')
                     logger_script.info('Устройство закончило работу без ошибок!',
@@ -1069,11 +1014,10 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                                  'По крайней мере один порт NMC модуля не найден'] and flash_result == 'По крайней мере один flash накопитель не определился, возможно, USB порты неисправны' and losses == '100% packet loss':
                         error_code = '999'
 
-                    output_file.write(f'>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
-                    output_file.write(
-                        f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
-                    output_file.write(f'Результат проверки USB портов: {flash_result}\n')
-                    output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
+                    write_new_note_pci(f'>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
+                    write_new_note_pci(f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
+                    write_new_note_pci(f'Результат проверки USB портов: {flash_result}\n')
+                    write_new_note_pci(f'Результат проверки Ethernet портов: {losses}\n')
                     update_history_db(serial_num_board, f'СТЕНД_ПСИ, плата закончиала работу с ошибкой {error_code}!')
                     Repair.new_note(serial_num_board, error_code)
                     logger_script.error(
@@ -1082,12 +1026,11 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             else:
                 if flash_result == 'Flash накопители найдены' and \
                         losses == '0% packet loss':
-                    output_file.write(f'Лох\n')
+                    write_new_note_pci(f'Flash накопителин не найдены\n')
                 else:
-                    output_file.write('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
-                    output_file.write(f'Результат проверки USB портов: {flash_result}\n')
-                    output_file.write(f'Результат проверки Ethernet портов: {losses}\n')
-                    output_file.flush()
+                    write_new_note_pci('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
+                    write_new_note_pci(f'Результат проверки USB портов: {flash_result}\n')
+                    write_new_note_pci(f'Результат проверки Ethernet портов: {losses}\n')
         # запись сырых результатов в файл
     current_time = str(datetime.now())[:-7].replace(':', '-')
     with open(f'logs_pci/raw_results-{current_time}.yaml', 'w') as f:
@@ -1101,4 +1044,3 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     logger_debag_4.removeHandler(log_d_4)
     logger_debag_5.removeHandler(log_d_5)
 
-    output_file.close()

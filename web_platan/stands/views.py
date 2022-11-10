@@ -10,6 +10,7 @@ from .utils import diagnostic
 from .utils import PCI
 from .utils.get_host_ip import *
 from .utils.group_required import group_required
+from .utils.output_file import *
 
 
 def index(request):
@@ -211,6 +212,7 @@ def stand_package_page(request):
 @group_required('Стенд визуального осмотра')
 def stand_visual_inspection_page(request):
     form = StandVisualInspection()
+    clear_file()
 
     if 'submit_btn_valid' in request.POST and request.method == 'POST':
         form = StandVisualInspection(request.POST)
@@ -243,12 +245,6 @@ def stand_visual_inspection_page(request):
 @group_required('Стенд диагностики')
 def stand_diagnostic_page(request):
     form = StandDiagnostic()
-
-    try:
-        output_file = open('stands/templates/ajax/diagnostic_output.html', 'w', encoding='utf-8')
-        output_file.close()
-    except:
-        return render(request, 'stand-diagnostic.html', context={'is_busy': True})
 
     if request.method == 'POST':
         form = StandDiagnostic(request.POST)
@@ -283,6 +279,8 @@ def stand_diagnostic_page(request):
 
             ip = get_ip(request)
             diagnostic.run(board_count, modification, board_serial_number_list, ip)
+            Statistic.new_note(board_serial_number, 'Стенд диагностики')
+
             return redirect('stand-diagnostic')
     return render(request, 'stand-diagnostic.html', context={'form': form})
 
@@ -290,17 +288,12 @@ def stand_diagnostic_page(request):
 @group_required('Стенд ПСИ')
 def stand_pci_page(request):
     form = StandPCI()
-
-    try:
-        output_file = open('stands/templates/ajax/pci_output.html', 'w', encoding='utf-8')
-        output_file.close()
-    except:
-        return render(request, 'stand-pci.html', context={'is_busy': True})
-
+    clear_file_pci()
     if request.method == 'POST':
         form = StandPCI(request.POST)
 
         if form.is_valid():
+            print('ZZZ')
             router_count = form.cleaned_data['router_count']
             router_serial_number = form.cleaned_data['router_serial_number_1']
             os_modification = 'SP'
@@ -332,8 +325,9 @@ def stand_pci_page(request):
                                         form.cleaned_data['router_serial_number_5']]
             ip = get_ip(request)
             PCI.run(router_count, modification, router_serial_number_list, ip)
+            Statistic.new_note(form.cleaned_data['router_serial_number_1'], 'Стенд ПСИ')
             return redirect('stand-pci')
-
+        return render(request, 'stand-pci.html', context={'form': form})
     return render(request, 'stand-pci.html', context={'form': form})
 
 
