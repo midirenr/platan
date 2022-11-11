@@ -64,7 +64,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         while True:
             if not yaml_file in filter(os.path.isfile, os.listdir(os.curdir)):
                 write_new_note('Отсутствует конфигурационный файл!\n')
-                raise CustomError(f'Отсутствует конфигурационный файл!')
+                return False
             else:
                 os.chdir('..')
                 break
@@ -95,7 +95,8 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 stdout=subprocess.PIPE).stdout.decode('utf-8'):
             logger_stend.error(f'Не удается запустить сервис tcp-to-serial-bridge-router{board_count}, \
                             выполнение программы невозможно', extra={'stend': f'{stend}'})
-            raise
+            return False
+
         logger_stend.info(f'Cервис tcp-to-serial-bridge-router{board_count} запущен', extra={'stend': f'{stend}'})
         write_new_note(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
 
@@ -122,14 +123,15 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 logger_stend.error(f'Не удается запустить сервис tcp-to-serial-bridge-router{board_count}, \
                             выполнение программы невозможно', extra={'stend': f'{stend}'})
                 write_new_note(f'Не удается запустить сервис tcp-to-serial-bridge-router_ssh')
-                raise
+                return False
+
             else:
                 logger_stend.info(f'Cервис tcp-to-serial-bridge-router{board_count} запущен',
                                   extra={'stend': f'{stend}'})
                 write_new_note(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
             ssh.disconnect()
         except:
-            raise CustomError('Что пошло не так! Проверьте подключение')
+            return False
 
     def host_service_check(service):
         """
@@ -143,14 +145,15 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 write_new_note('Сервис {} включен\n'.format(service))
                 logger_stend.info('Сервис {} включен'.format(service), extra={'stend': f'{stend}'})
             else:
-                raise CustomError(f'Проверьте состояние сервиса {service}, выполнение программы невозможно')
+                return False
         except CustomError as e:
             logger_stend.error(e)
-            raise
+            return False
         except:
             logger_stend.error(f'Ошибка при проверке состояния сервиса {service} \n %s' % traceback.format_exc(),
                                extra={'stend': f'{stend}'})
-            raise
+            return False
+
     def host_service_check_ssh(service):
         """
         Проверка состояния сервисов на хосте. Если сервис не запущен, выполнение скрипта заканчивается
@@ -177,7 +180,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     logger_stend.error(f'Сервис {service} не удается запустить, \
                             выполнение программы невозможно', extra={'stend': f'{stend}'})
                     write_new_note('Сервис не удается запустить\n'.format(service))
-                    raise CustomError(f'Сервис {service} не удается запустить')
+                    return False
                 else:
                     logger_stend.info(f'Cервис {service} запущен', extra={'stend': f'{stend}'})
                     write_new_note('Сервис {} запущен\n'.format(service))
@@ -186,7 +189,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 write_new_note('Сервис {} запущен\n'.format(service))
             ssh.disconnect()
         except:
-            raise CustomError('Что пошло не так! Проверьте подключение')
+            return False
 
     def send_command(connect, command, sn, place, timeout=10, expect_string='#', just_wait=False):
         """
@@ -209,7 +212,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             if expect_string not in output:
                 logger_script.error('Неожиданный вывод команды:' f'ВЫВОД КОМАНДЫ: {output}',
                                     extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                raise CustomErrorExtended(['Неожиданный вывод команды', f'ВЫВОД КОМАНДЫ: {output}', '202'])
+                return False
         return output
 
     def send_commands(connect, commands, sn, place, timeout=20, expect_string='#'):
@@ -233,13 +236,12 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             if 'No link.' in output:
                 logger_script.error('No link. Проблема с соединением.',
                                     extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                raise CustomErrorExtended(
-                    ['No link. Проблема с соединением. Проверьте кабель и SFP-модуль.', f'ВЫВОД КОМАНД: {all_output}',
-                     '406'])
+                return False
+
             if expect_string not in output:
                 logger_script.error('Неожиданный вывод команды:' f'ВЫВОД КОМАНДЫ: {all_output}',
                                     extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-                raise CustomErrorExtended(['Неожиданный вывод команды', f'ВЫВОД КОМАНД: {all_output}', '202'])
+                return False
 
         return all_output
 
@@ -256,11 +258,11 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         if phase == 'install' and 'Hit any key to stop autoboot' not in console_output:
             logger_script.error('Не удалось войти в U-BOOT...',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(
-                ['Не удалось войти в Uboot. Возможно BOOT LOOP!', f'ВЫВОД В КОНСОЛЬ: {console_output}', '404'])
+            return False
+
         if phase == 'erase' and 'Hit any key to stop autoboot' not in console_output:
-            raise CustomErrorExtended(
-                ['Не удалось войти в Uboot при очистке flash', f'ВЫВОД В КОНСОЛЬ: {console_output}', '404'])
+            return False
+
         connect.write(b'a')  # отправляем символ 'a' чтобы остановить таймер
         time.sleep(1)
         connect.write(b'\x1b[B\n')
@@ -369,8 +371,8 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         else:
             logger_script.error('SSD работает нестабильно!',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(
-                ['SSD работает нестабильно!', f'SSD удалось инициализировать {len(check_list)} раз из 6', '501'])
+            return False
+
 
     def install_software(connect, wait_time, phase, sn, stend, place):
         """
@@ -388,28 +390,28 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         elif phase == 'install' and 'Error: Install disk with label: INSTALLER not found' in console_output:
             logger_script.error('Не удалось обнаружить флешку с LABEL: INSTALLER',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(
-                ['Не удалось обнаружить флешку с LABEL: INSTALLER', f'ВЫВОД В КОНСОЛЬ: {console_output}', '403'])
+            return False
+
         elif phase == 'install' and 'Error while generating lvm2 partitions' in console_output:
             logger_script.error('Возникли проблемы с разбиением диска на разделы',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(
-                ['Возникли проблемы с разбиением диска на разделы', f'ВЫВОД В КОНСОЛЬ: {console_output}', '402'])
+            return False
+
         elif phase == 'install' and 'Disk too small' in console_output:
             logger_script.error('Возникли проблемы с определением размера SSD',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(
-                ['Возникли проблемы с определением размера SSD', f'ВЫВОД В КОНСОЛЬ: {console_output}', '408'])
+            return False
+
         elif phase == 'install' and 'Lvm group vg0 already exists' in console_output:
             logger_script.error('На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(['На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD',
-                                       f'ВЫВОД В КОНСОЛЬ: {console_output}', '410'])
+            return False
+
         else:
             logger_script.error('Не удалось начать установку ПО по неизвестным причинам',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(
-                ['Не удалось начать установку ПО по неизвестным причинам', f'ВЫВОД В КОНСОЛЬ: {console_output}', '407'])
+            return False
+
         # if phase == 'install' and 'Error: Install disk with label: INSTALLER not found' in console_output:
         #    raise CustomErrorExtended(['Не удалось начать установку ПО', f'ВЫВОД В КОНСОЛЬ: {console_output}'], '403')
         # if phase == 'erase' and 'Error: Install disk with label: INSTALLER not found' in console_output:
@@ -447,7 +449,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         else:
             logger_script.error('Неожиданное приглашение cli после установки ПО',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(['Неожиданное приглашение cli после установки ПО', f'PROMPT: {prompt}', '401'])
+            return False
         return prompt
 
     def post_install_check(connect, sn, stend, place):
@@ -462,8 +464,8 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         if 'Kernel panic' in output_before_check:
             logger_script.error('При загрузке после установки ПО возник Kernel Panic',
                                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(['При загрузке после установки ПО возник Kernel Panic',
-                                       f'KERNEL PANIC TRACE: {output_before_check}', '409'])
+            return False
+
         elif 'Waiting for full initialization of mprdaemon' in output_before_check:
             logger_script.info('ПО было успешно установленно',
                                extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
@@ -484,10 +486,8 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             logger_script.error(
                 f'Маршрутизатор не загрузился после установки ПО, не найдено приглашение cli {failed_prompt_result}',
                 extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-            raise CustomErrorExtended(['Маршрутизатор не загрузился после установки ПО, не найдено приглашение cli',
-                                       f'PROMPT: {failed_prompt_result}',
-                                       '401',
-                                       f'Вывод в консоль до попытки залогиниться: {output_before_check}'])
+            return False
+
         time.sleep(5)
         version = send_command(connect, 'show version', sn, place)
         logger_script.info('Вход на устройство выполнен успешно',
@@ -589,7 +589,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             return ping_result
         except:
             write_new_note("Не удалось подключится!")
-            raise CustomError('Не удалось подключиться!')
+            return False
 
     def nmc_check(connect):
         login_to_router(connect)
@@ -869,7 +869,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             params_netplan = yaml.safe_load(f)
     except CustomError as e:
         logger_stend.error(e)
-        raise
+        return False
     logger_stend.info('Ip хоста успешно получен...', extra={'stend': f'{stend}'})
     write_new_note('Проверка подключения к БД...\n')
     logger_stend.info('Проверка подключения к БД...', extra={'stend': f'{stend}'})
@@ -878,7 +878,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         test_connections = db_conn.cursor()
     except OperationalError:
         logger_stend.error(f'Не удается подключиться к базе MAC адресов, выполнение программы невозможно')
-        raise
+        return False
     logger_stend.info('Подключение к БД успешно!', extra={'stend': f'{stend}'})
     write_new_note('Подключение к БД успешно!\n')
     write_new_note('Включение tcp-to-serial мостов...\n')
@@ -913,7 +913,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                 extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
             SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code='666')
             update_history_db(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с неизвестной ошибкой!')
-            raise ('СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с неизвестной ошибкой!')
+            return False
         elif 'Ошибка c устройством' in result[f'device_num_{dev_num}']['error']:
             error_string = result[f'device_num_{dev_num}']['error_details'][0][0]
             write_new_note(f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
@@ -926,7 +926,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             SerialNumBoard.set_visual_inspection(serial_num_board, valid=False, error_code=error_code)
             update_history_db(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
             Repair.new_note(serial_num_board, error_code)
-            raise (f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
+            return False
         else:
             flash_result = result[f'device_num_{dev_num}']['flash_check_result'][1]
             losses = re.findall(r'\d+% packet loss', result[f'device_num_{dev_num}']['ping_result'])[0]
@@ -950,6 +950,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 logger_script.info('Устройство закончило работу без ошибок!',
                                    extra={'sn': f'{serial_num_board}', 'stend': f'{stend}',
                                           'place': f'{place}'})
+                Statistic.new_note(serial_num_board, 'Стенд диагностики')
             else:
                 write_new_note('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
                 serial_num_board = board_serial_number_list[dev_num - 1]
@@ -982,7 +983,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 logger_script.error(
                     f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result}, {flash_result}, {losses}',
                     extra={'sn': f'{serial_num_board}', 'stend': f'{stend}', 'place': f'{place}'})
-                raise
+                return False
         # запись сырых результатов в файл
     current_time = str(datetime.now())[:-7].replace(':', '-')
     with open(f'logs/diagnostic/raw_results/raw_results-{current_time}.yaml', 'w') as f:

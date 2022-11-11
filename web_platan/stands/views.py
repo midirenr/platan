@@ -225,7 +225,7 @@ def stand_visual_inspection_page(request):
             History.new_note(form.cleaned_data['board_serial_number'],
                              msg="СТЕНД ВИЗУАЛЬНОГО ОСМОТРА, стенд пройден успешно")
 
-            return redirect('stand-visual-inspection')
+            return render(request, 'stand_visual_inspection.html', context={'valid': True, 'form': StandVisualInspection()})
 
     if 'submit_btn_defect' in request.POST and request.method == 'POST':
         form = StandVisualInspection(request.POST)
@@ -237,7 +237,7 @@ def stand_visual_inspection_page(request):
             History.new_note(form.cleaned_data['board_serial_number'],
                              msg="СТЕНД ВИЗУАЛЬНОГО ОСМОТРА, стенд не пройден")
 
-            return redirect('stand-visual-inspection')
+            return render(request, 'stand_visual_inspection.html', context={'defect': True, 'form': StandVisualInspection()})
 
     return render(request, 'stand_visual_inspection.html', context={'form': form})
 
@@ -245,7 +245,7 @@ def stand_visual_inspection_page(request):
 @group_required('Стенд диагностики')
 def stand_diagnostic_page(request):
     form = StandDiagnostic()
-
+    clear_file()
     if request.method == 'POST':
         form = StandDiagnostic(request.POST)
         if form.is_valid():
@@ -278,10 +278,13 @@ def stand_diagnostic_page(request):
                                         form.cleaned_data['board_serial_number_5']]
 
             ip = get_ip(request)
-            diagnostic.run(board_count, modification, board_serial_number_list, ip)
-            Statistic.new_note(board_serial_number, 'Стенд диагностики')
-
-            return redirect('stand-diagnostic')
+            result = diagnostic.run(board_count, modification, board_serial_number_list, ip)
+            if result:
+                clear_file()
+                return render(request, 'stand-diagnostic.html', context={'form': form, 'result': result})
+            else:
+                return render(request, 'stand-diagnostic.html', context={'form': form})
+        return render(request, 'stand-diagnostic.html', context={'form': form})
     return render(request, 'stand-diagnostic.html', context={'form': form})
 
 
@@ -293,7 +296,6 @@ def stand_pci_page(request):
         form = StandPCI(request.POST)
 
         if form.is_valid():
-            print('ZZZ')
             router_count = form.cleaned_data['router_count']
             router_serial_number = form.cleaned_data['router_serial_number_1']
             os_modification = 'SP'
@@ -324,9 +326,13 @@ def stand_pci_page(request):
                                         form.cleaned_data['router_serial_number_4'],
                                         form.cleaned_data['router_serial_number_5']]
             ip = get_ip(request)
-            PCI.run(router_count, modification, router_serial_number_list, ip)
-            Statistic.new_note(form.cleaned_data['router_serial_number_1'], 'Стенд ПСИ')
-            return redirect('stand-pci')
+            result = PCI.run(router_count, modification, router_serial_number_list, ip)
+
+            if result:
+                clear_file_pci()
+                return render(request, 'stand-pci.html', context={'form': form, 'result': result})
+            else:
+                return render(request, 'stand-pci.html', context={'form': form})
         return render(request, 'stand-pci.html', context={'form': form})
     return render(request, 'stand-pci.html', context={'form': form})
 

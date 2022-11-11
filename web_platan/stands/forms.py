@@ -140,6 +140,7 @@ class StandPackage(forms.Form):
                                                                     f'\nПередайте устройство на стенд ПСИ!'])
             return self.cleaned_data
 
+        return self.cleaned_data
 
 class StandVisualInspection(forms.Form):
     board_serial_number = forms.CharField(min_length=14, max_length=14)
@@ -152,13 +153,14 @@ class StandVisualInspection(forms.Form):
         if board_serial_number[4:6] != '20':
             self.errors['board_serial_number'] = self.error_class([f'Серийный номер указан неправильно!'
                                                                    f' Отсканируйте повторно.'])
+            return self.cleaned_data
 
         if SerialNumBoard.get_board_count(board_serial_number) > 0:
             self.errors['board_serial_number'] = self.error_class([f'Плата с серийным номером {board_serial_number}'
                                                                    f' уже есть в Базе Данных!'])
+            return self.cleaned_data
 
         return self.cleaned_data
-
 
 class StandDiagnostic(forms.Form):
     CHOICES_COUNT = zip(range(1, 6), range(1, 6))
@@ -221,6 +223,19 @@ class StandDiagnostic(forms.Form):
                                                                          f' визуального осмотра.'])
                 return self.cleaned_data
 
+            if not SerialNumBoard.get_visual_inspection_result(serial_numbers[i]):
+                self.errors['board_serial_number_1'] = self.error_class([f'Плата с серийным номером {serial_numbers[i]}'
+                                                                         f' была помечена как бракованная!\n'
+                                                                         f'Передайте плату на стенд'
+                                                                         f' визуального осмотра.'])
+                return self.cleaned_data
+
+            if Macs.get_free_mac_count() < 3:
+                self.errors['board_serial_number_1'] = self.error_class([f'В базе данных отсутствуют свободные'
+                                                                        f' MAC-адреса, обратитесь к разработчику'])
+                return self.cleaned_data
+        return self.cleaned_data
+
 
 class StandPCI(forms.Form):
     CHOICES_COUNT = zip(range(1, 6), range(1, 6))
@@ -269,15 +284,19 @@ class StandPCI(forms.Form):
             self.cleaned_data['router_serial_number_4'],
             self.cleaned_data['router_serial_number_5']]
 
-        for i in range(int(router_count)):
-            if serial_numbers[i][4:6] != '10':
-                self.errors['board_serial_number_1'] = self.error_class([f'Серийный номер указан неправильно!'
-                                                                         f'\nОтсканируйте повторно.'])
+        for number in range(0, int(router_count)):
+            if serial_numbers[number][4:6] != '10':
+                self.errors[f'router_serial_number_{number+1}'] = self.error_class([f'Серийный номер'
+                                                                                    f' указан неправильно!'
+                                                                                    f'\nОтсканируйте повторно.'])
                 return self.cleaned_data
 
-            if not SerialNumRouter.check_sn(serial_numbers[i]):
-                self.errors['board_serial_number_1'] = self.error_class([f'Плата с серийным номером {serial_numbers[i]}'
-                                                                         f' отсутствует в Базе Данных!\n'
-                                                                         f'Передайте плату на стенд'
-                                                                         f' визуального осмотра.'])
+            if not SerialNumRouter.check_sn(serial_numbers[number]):
+                self.errors[f'router_serial_number_{number+1}'] = self.error_class([f'Плата с серийным номером '
+                                                                                    f'{serial_numbers[number]}'
+                                                                                    f' отсутствует в Базе Данных!\n'
+                                                                                    f'Передайте плату на стенд'
+                                                                                    f' визуального осмотра.'])
                 return self.cleaned_data
+
+        return self.cleaned_data

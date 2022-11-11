@@ -77,6 +77,10 @@
     </div>
 </form>
 
+    {% if result %}
+    <script>alert('Плата успешно прошла ПСИ!')</script>
+    {% endif %}
+
     {% if is_busy %}
         <script>
 <!--Сделать редирект на stand_pci_2..3..4.... при необходимости-->

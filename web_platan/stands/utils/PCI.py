@@ -18,6 +18,7 @@ from .output_file import *
 
 
 def run(board_count, modification, board_serial_number_list, host_ip):
+    pci_result = False
     class CustomError(Exception):
         pass
 
@@ -290,7 +291,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 f'usb start ; \
                 env set phy_sfp 1 ; \
                 dhcp ; \
-                setenv serverip {host_ip} ; \
+                setenv serverip 192.168.1.2 ; \
                 setenv fdt_addr_n 0x85D00000 ; \
                 setenv fdt_file_name baikal.dtb ; \
                 setenv initrd_addr_n 0x86000000 ; \
@@ -466,6 +467,10 @@ def run(board_count, modification, board_serial_number_list, host_ip):
             send_command(connect, 'admin', sn, place, expect_string='Password')
             output = send_command(connect, f'{admin_password}', sn, place, just_wait=True)
             logger_debag(output, sn, stend, place)
+            # if 'Cannot start CLI session.' in output:
+            #    connect.read_until(b'Module: nsm has closed connection with IMI.')
+            #    send_command(connect, 'admin', expect_string='Password')
+            #    send_command(connect, f'{admin_password}')
         elif 'Password:' in prompt:
             send_command(connect, '', sn, place, expect_string='login')
             send_command(connect, 'admin', sn, place, expect_string='Password')
@@ -598,18 +603,24 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         send_commands(connect, commands, sn, place, expect_string='admin@sr-be')
         third_octet = 200 + dev_num
         # отправляем 5 пакетов чтобы заполнились ARP и FDB таблицы на устройствах, потом отправляем тестовые 30 пакетов
-        subprocess.run(['ping', f'192.168.{third_octet}.1', '-c', '5'],
-                       stdout=subprocess.PIPE).stdout.decode('utf-8')
-        ping_result = subprocess.run(['ping', f'192.168.{third_octet}.1', '-c', '30', '-i', '0,2'],
-                                     stdout=subprocess.PIPE).stdout.decode('utf-8')
-        logger_debag(ping_result, sn, stend, place)
-        if 'Destination Host Unreachable' in ping_result:
-            logger_script.error('Порты не прошли проверку',
-                                extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-        else:
-            logger_script.info('Порты успешно прошли проверку',
-                               extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
-        return ping_result
+        try:
+            host_config = {
+                'device_type': 'linux',
+                'host': host_ip,
+                'username': 'istok',
+                'password': 'istok',
+                'secret': 'istok',
+                'port': '22',
+            }
+            ssh = ConnectHandler(**host_config)
+            ssh.enable()
+            ssh.send_command(f'ping 192.168.{third_octet}.1 -c 5', read_timeout=40.0)
+            ping_result = ssh.send_command(f'ping 192.168.{third_octet}.1 -c 30 -i 0,2', read_timeout=40.0)
+            logger_debag(ping_result, sn, stend, place)
+            return ping_result
+        except:
+            write_new_note("Не удалось подключится!")
+            raise CustomError('Не удалось подключиться!')
 
     def nmc_check(connect):
         login_to_router(connect)
@@ -704,21 +715,21 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                 phase = 'install'
 
                 sn = board_serial_number_list[int(device_num) - 1]
-                stend = 'СТЕНД_ДИАГНОСТИКИ'
+                stend = 'СТЕНД_ПСИ'
                 place = board_serial_number_list.index(sn) + 1
                 result[f'device_num_{device_num}']['sn'] = sn
 
-                write_new_note(f'Вход в Uboot устройства {device_num}...\n')
+                write_new_note_pci(f'Вход в Uboot устройства {device_num}...\n')
                 logger_script.info(f'Вход в Uboot устройства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['uboot_prompt'] = enter_uboot(connect, phase, sn, stend, place)
 
-                write_new_note(f'Инициализация SSD устойства {device_num}...\n')
+                write_new_note_pci(f'Инициализация SSD устойства {device_num}...\n')
                 logger_script.info(f'Инициализация SSD устойства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['sata_info'] = init_disk(connect, sn, stend, place)
 
-                write_new_note(f'Настройка Bootmenu устройства {device_num}...\n')
+                write_new_note_pci(f'Настройка Bootmenu устройства {device_num}...\n')
                 logger_script.info(f'Настройка Bootmenu устройства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['bootmenu_1_install'] = set_bootmenu(connect, host_ip,
@@ -727,7 +738,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                                                                         master_password, phase, sn,
                                                                                         stend, place)
 
-                write_new_note(f'Установка ПО на устройство {device_num}...\n')
+                write_new_note_pci(f'Установка ПО на устройство {device_num}...\n')
                 logger_script.info(f'Установка ПО на устройство',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 time.sleep(5)
@@ -736,14 +747,14 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                                                                              install_software_timeout,
                                                                                              phase, sn, stend, place)
 
-                write_new_note(f'Вход для проведения проверок на устройство {device_num}...\n')
+                write_new_note_pci(f'Вход для проведения проверок на устройство {device_num}...\n')
                 logger_script.info(f'Вход для проведения проверок на устройство',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['post_install_check_result'] = post_install_check(connect, sn, stend,
                                                                                                      place)
 
                 if hdd_present:
-                    write_new_note(f'Проверка наличия HDD на устройстве {device_num}...\n')
+                    write_new_note_pci(f'Проверка наличия HDD на устройстве {device_num}...\n')
                     logger_script.info(f'Проверка наличия HDD на устройстве',
                                        extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                     result[f'device_num_{device_num}']['hdd_check_result'] = hdd_check(connect, sn, stend, place)
@@ -751,7 +762,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     result[f'device_num_{device_num}']['hdd_check_result'] = 'Исполнение без HDD, ' \
                                                                              'проверка наличия HDD не проводилась'
 
-                write_new_note(f'Проверка наличия 2-х Flash накопителей на устройстве {device_num}...\n')
+                write_new_note_pci(f'Проверка наличия 2-х Flash накопителей на устройстве {device_num}...\n')
                 logger_script.info(f'Проверка наличия 2-х Flash накопителей на устройстве',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['flash_check_result'] = flash_check(connect, hdd_present,
@@ -761,27 +772,27 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                                                                                        stend, place)
 
                 if nmc_ports_count != 0:
-                    write_new_note(f'Проверка NMC модуля на устройстве {device_num}...')
+                    write_new_note_pci(f'Проверка NMC модуля на устройстве {device_num}...')
                     result[f'device_num_{device_num}']['nmc_check_result'] = nmc_check(connect)
                 else:
                     result[f'device_num_{device_num}']['nmc_check_result'] = 'Исполнение без NMC модуля, проверка ' \
                                                                              'наличия NMC модуля не проводилась '
 
-                write_new_note(f'Проверка работоспособности портов на устройстве {device_num}...\n')
+                write_new_note_pci(f'Проверка работоспособности портов на устройстве {device_num}...\n')
                 logger_script.info(f'Проверка работоспособности портов на устройстве',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['ping_result'] = ports_check(connect, ports_check_cmds,
                                                                                 device['port'] - 230, sn, stend, place)
 
                 if nmc_ports_count == 0:
-                    write_new_note(f'Удаление разделов на диске {device_num}...\n')
+                    write_new_note_pci(f'Удаление разделов на диске {device_num}...\n')
                     logger_script.info(f'Удаление разделов на диске',
                                        extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                     result[f'device_num_{device_num}']['erase_disk'] = erase_disk(connect, sn, stend, place)
                 else:
                     result[f'device_num_{device_num}']['erase_disk'] = 'Удаление разделов не проводилось, так как исполнение с NMC модулем'
 
-                write_new_note(f'Создание протокола проверки изделия для устройства {device_num}...')
+                write_new_note_pci(f'Создание протокола проверки изделия для устройства {device_num}...')
                 logger_script.info(f'Создание протокола проверки изделия для устройства',
                                    extra={'sn': f'{sn}', 'stend': f'{stend}', 'place': f'{place}'})
                 create_protocol(device_num, sn, modification, result)
@@ -845,7 +856,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
 
     # log_debug
     logger_debag_1 = logging.getLogger('debag_1')
-    log_d_1 = logging.FileHandler('.log/debag_log_1.log')
+    log_d_1 = logging.FileHandler('logs/PCI/debag_log_1.log')
     logger_debag_1.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -853,7 +864,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_1.setFormatter(format_d_script)
     logger_debag_1.addHandler(log_d_1)
     logger_debag_2 = logging.getLogger('debag_2')
-    log_d_2 = logging.FileHandler('.log/debag_log_2.log')
+    log_d_2 = logging.FileHandler('logs/PCI/debag_log_2.log')
     logger_debag_2.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -861,7 +872,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_2.setFormatter(format_d_script)
     logger_debag_2.addHandler(log_d_2)
     logger_debag_3 = logging.getLogger('debag_3')
-    log_d_3 = logging.FileHandler('.log/debag_log_3.log')
+    log_d_3 = logging.FileHandler('logs/PCI/debag_log_3.log')
     logger_debag_3.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -869,7 +880,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_3.setFormatter(format_d_script)
     logger_debag_3.addHandler(log_d_3)
     logger_debag_4 = logging.getLogger('debag_4')
-    log_d_4 = logging.FileHandler('.log/debag_log_4.log')
+    log_d_4 = logging.FileHandler('logs/PCI/debag_log_4.log')
     logger_debag_4.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -877,7 +888,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     log_d_4.setFormatter(format_d_script)
     logger_debag_4.addHandler(log_d_4)
     logger_debag_5 = logging.getLogger('debag_5')
-    log_d_5 = logging.FileHandler('.log/debag_log_5.log')
+    log_d_5 = logging.FileHandler('logs/PCI/debag_log_5.log')
     logger_debag_5.setLevel(logging.DEBUG)
     format_d_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -886,14 +897,14 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     logger_debag_5.addHandler(log_d_5)
     # log_info stend
     logger_stend = logging.getLogger('stend')
-    log_i_stend = logging.FileHandler('.log/log_stend.log')
+    log_i_stend = logging.FileHandler('logs/PCI/log_stend.log')
     logger_stend.setLevel(logging.INFO)
     format_i_stend = logging.Formatter("%(asctime)s - %(levelname)s - %(stend)s - %(message)s", '%Y-%m-%d %H:%M:%S')
     log_i_stend.setFormatter(format_i_stend)
     logger_stend.addHandler(log_i_stend)
     # log_info script
     logger_script = logging.getLogger('script')
-    log_i_script = logging.FileHandler('.log/log_script.log')
+    log_i_script = logging.FileHandler('logs/PCI/log_script.log')
     logger_script.setLevel(logging.INFO)
     format_i_script = logging.Formatter(
         "%(asctime)s - %(levelname)s - %(stend)s -  %(sn)s  -  %(place)s  -  %(funcName)s: %(message)s",
@@ -943,9 +954,9 @@ def run(board_count, modification, board_serial_number_list, host_ip):
         bridge_restart_result = executor.map(tcp_to_serial_bridge_restart_ssh, list(range(1, int(board_count) + 1)))
 
     # Проверка tftp сервиса
-    host_service_check_ssh('tftp')
+    host_service_check_ssh('tftpd-hpa')
     # Проверка ftp сервиса
-    host_service_check_ssh('vsftp')
+    host_service_check_ssh('vsftpd')
 
     # запуск инсталляции ПО и проверок
     result = {}
@@ -994,6 +1005,9 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     logger_script.info('Устройство закончило работу без ошибок!',
                                        extra={'sn': f'{serial_num_board}', 'stend': f'{stend}',
                                               'place': f'{place}'})
+                    Statistic.new_note(serial_num_board, 'Стенд ПСИ')
+                    pci_result = True
+
                 else:
                     if ext_slot_out_result in ['Внешний HDD не найден',
                                                'По крайней мере один порт NMC модуля не найден']:
@@ -1033,7 +1047,7 @@ def run(board_count, modification, board_serial_number_list, host_ip):
                     write_new_note_pci(f'Результат проверки Ethernet портов: {losses}\n')
         # запись сырых результатов в файл
     current_time = str(datetime.now())[:-7].replace(':', '-')
-    with open(f'logs_pci/raw_results-{current_time}.yaml', 'w') as f:
+    with open(f'logs/PCI/raw_results/raw_results-{current_time}.yaml', 'w') as f:
         f.write(yaml.dump(result, allow_unicode=True))
 
     logger_stend.removeHandler(log_i_stend)
@@ -1043,4 +1057,6 @@ def run(board_count, modification, board_serial_number_list, host_ip):
     logger_debag_3.removeHandler(log_d_3)
     logger_debag_4.removeHandler(log_d_4)
     logger_debag_5.removeHandler(log_d_5)
+
+    return pci_result
 

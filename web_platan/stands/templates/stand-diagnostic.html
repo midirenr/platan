@@ -76,6 +76,9 @@
         {{ form.output }}
     </div>
 </form>
+    {% if result %}
+    <script>alert('Плата успешно прошла диагностику!')</script>
+    {% endif %}
 
     {% if is_busy %}
         <script>

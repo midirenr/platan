@@ -111,7 +111,7 @@ class Devices(models.Model):
         db_table = 'devices'
 
     @classmethod
-    def create_device(cls, serial_num_board: str) -> list:
+    def create_device(cls, serial_num_board: str):
         """
         Функция создает новый девайс
         (присваивает ему мак-адреса, плату, возвращает список [serial_num_board, мак-адреса])
@@ -125,19 +125,17 @@ class Devices(models.Model):
         new_device.save()
 
         snmac_list = [serial_num_board]
-        ethaddr_id_list = list()
         macs = Macs.objects.filter(device_id__isnull=True)[:3]
 
         for mac in macs:
             snmac_list.append(mac.mac)
             mac.device_id = new_device
             mac.save()
-            ethaddr_id_list.append(mac)
 
-        new_device.ethaddr_id = ethaddr_id_list[0]
-        new_device.eth1addr_id = ethaddr_id_list[1]
-        new_device.eth2addr_id = ethaddr_id_list[2]
-        new_device.save()
+            new_device.ethaddr_id = macs[0]
+            new_device.eth1addr_id = macs[1]
+            new_device.eth2addr_id = macs[2]
+            new_device.save()
 
         return snmac_list
 
@@ -194,8 +192,8 @@ class Devices(models.Model):
 
         router_id: id роутера, который мы получаем для поиска записи в таблице devices
         """
-        router_id = SerialNumRouter.objects.get(serial_num=serial_num)
-        device = cls.objects.get(serial_num_router_id=router_id.id)
+        router_id = SerialNumRouter.objects.get(serial_num_router=serial_num)
+        device = cls.objects.get(serial_num_router_id=router_id)
         device.date_time_pci = str(datetime.now())[:-7].replace(':', '-')
         device.save()
 
@@ -241,12 +239,17 @@ class SerialNumBoard(models.Model):
     serial_num_board = models.CharField(max_length=14, unique=True)
     visual_inspection_author = models.CharField(max_length=150, blank=True, null=True)
     visual_inspection = models.BooleanField(default=False)
-    visual_inspection_error_code = models.CharField(max_length=3, blank=True, null=True)
+    diagnostic_error_code = models.CharField(max_length=3, blank=True, null=True)
     visual_inspection_datetime = models.CharField(max_length=20, null=True)
     device_id = models.OneToOneField('Devices', on_delete=models.CASCADE, unique=True,  blank=True, null=True)
 
     class Meta:
         db_table = 'serial_num_board'
+
+    @classmethod
+    def get_visual_inspection_result(cls, serial_num):
+        board = cls.objects.get(serial_num_board=serial_num)
+        return board.visual_inspection
 
     @classmethod
     def check_sn(cls, serial_num_board):
@@ -289,7 +292,7 @@ class SerialNumBoard(models.Model):
         """
         board = cls.objects.get(serial_num_board=serial_num)
         board.visual_inspection = valid
-        board.visual_inspection_error_code = error_code
+        board.diagnostic_error_code = error_code
         board.save()
 
     @classmethod
@@ -308,7 +311,7 @@ class SerialNumBoard(models.Model):
         serial_num: серийный номер платы, у которой необходимо изменить visual_inspection_error_code
         """
         board = cls.objects.get(serial_num_board=serial_num)
-        board.visual_inspection_error_code = '000'
+        board.diagnostic_error_code = '000'
 
     @classmethod
     def is_existence(cls, serial_num: str) -> bool:
@@ -376,6 +379,10 @@ class Macs(models.Model):
 
     class Meta:
         db_table = 'macs'
+
+    @classmethod
+    def get_free_mac_count(cls):
+        return cls.objects.filter(device_id__isnull=True).count()
 
 
 class Statistic(models.Model):

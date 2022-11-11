@@ -34,4 +34,12 @@
     </div>
 </form>
 
+{% if valid %}
+<script>alert('Плата помечена как годная!')</script>
+{% endif %}
+
+{% if defect %}
+<script>alert('Плата помечена как бракованная!')</script>
+{% endif %}
+
 {% endblock %}
