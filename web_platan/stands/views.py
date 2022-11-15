@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect
 from django.http import FileResponse
 from datetime import datetime
+import concurrent.futures
+
 
 from .forms import *
 from .models import *
 from .utils.generate_serial_number import *
 from .utils.package import *
-from .utils import diagnostic
+from .utils.diag import Diagnostic
 from .utils import PCI
 from .utils.get_host_ip import *
 from .utils.group_required import group_required
@@ -278,12 +280,14 @@ def stand_diagnostic_page(request):
                                         form.cleaned_data['board_serial_number_5']]
 
             ip = get_ip(request)
-            result = diagnostic.run(board_count, modification, board_serial_number_list, ip)
+            diagnostic = Diagnostic(board_count, modification, board_serial_number_list, ip)
+            result = diagnostic.start_diagnostic()
+            #result = diagnostic.run(board_count, modification, board_serial_number_list, ip)
             if result:
                 clear_file()
                 return render(request, 'stand-diagnostic.html', context={'form': form, 'result': result})
             else:
-                return render(request, 'stand-diagnostic.html', context={'form': form})
+                return render(request, 'stand-diagnostic.html', context={'form': form, 'error': 'error'})
         return render(request, 'stand-diagnostic.html', context={'form': form})
     return render(request, 'stand-diagnostic.html', context={'form': form})
 

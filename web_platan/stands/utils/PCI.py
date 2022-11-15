@@ -19,6 +19,7 @@ from .output_file import *
 
 def run(board_count, modification, board_serial_number_list, host_ip):
     pci_result = False
+
     class CustomError(Exception):
         pass
 

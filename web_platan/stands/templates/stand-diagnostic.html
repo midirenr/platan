@@ -69,6 +69,9 @@
             </div>
         </div>
         <button type="submit" name="diagnostic_start" id="btn_diagnostic_start">Старт Диагностики</button>
+        {% if error %}
+        <div align="left" class="errors"> Ошибка при проведении диагностики</div>
+        {% endif %}
         </div>
 
     <div align="center" id="diag-right-frame">
