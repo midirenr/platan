@@ -138,7 +138,7 @@ class PCI:
         os.chdir('stands/utils/yamls')
         while True:
             if yaml_file not in filter(os.path.isfile, os.listdir(os.curdir)):
-                write_new_note('Отсутствует конфигурационный файл!\n')
+                write_new_note_pci('Отсутствует конфигурационный файл!\n')
                 return False
             else:
                 os.chdir('..')
@@ -215,32 +215,40 @@ class PCI:
         return all_output
 
     def get_ip(self):
+        """
+        Получение ip хоста
+        :return:
+        """
         try:
             self.logger_stend.info('Получении ip хоста...', extra={'stend': f'{self.stend}'})
-            write_new_note('Получении ip хоста..\n')
+            write_new_note_pci('Получении ip хоста..\n')
             netplan_config_name = os.listdir('/etc/netplan')[0]
             netplan_config_file = f'/etc/netplan/{netplan_config_name}'
             with open(netplan_config_file) as f:
                 params_netplan = yaml.safe_load(f)
             self.logger_stend.info('Ip хоста успешно получен...', extra={'stend': f'{self.stend}'})
-            write_new_note('Ip хоста успешно получен...\n')
+            write_new_note_pci('Ip хоста успешно получен...\n')
             return True
         except CustomError as e:
             self.logger_stend.error(e)
             return False
 
     def connect_to_db(self):
-        write_new_note('Проверка подключения к БД...\n')
+        """
+        Проверка подключения к базе данных
+        :return:
+        """
+        write_new_note_pci('Проверка подключения к БД...\n')
         self.logger_stend.info('Проверка подключения к БД...', extra={'stend': f'{self.stend}'})
         try:
             db_conn = connections['default']
             test_connections = db_conn.cursor()
             self.logger_stend.info('Подключение к БД успешно!', extra={'stend': f'{self.stend}'})
-            write_new_note('Подключение к БД успешно!\n')
+            write_new_note_pci('Подключение к БД успешно!\n')
 
             return True
         except OperationalError:
-            write_new_note(f'Не удается подключиться к базе MAC адресов, выполнение программы невозможно\n')
+            write_new_note_pci(f'Не удается подключиться к базе MAC адресов, выполнение программы невозможно\n')
             self.logger_stend.error(f'Не удается подключиться к базе MAC адресов, выполнение программы невозможно')
             return False
 
@@ -271,13 +279,17 @@ class PCI:
         else:
             self.logger_script.error('Неожиданное приглашение cli после установки ПО',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Неожиданное приглашение cli после установки ПО\n')
+            write_new_note_pci('Неожиданное приглашение cli после установки ПО\n')
             return False
         return prompt
 
     def tcp_restart(self):
+        """
+        Включение tcp мостов
+        :return:
+        """
         try:
-            write_new_note('Включение tcp-to-serial мостов...\n')
+            write_new_note_pci('Включение tcp-to-serial мостов...\n')
             self.logger_stend.info('Включение tcp-to-serial мостов...', extra={'stend': f'{self.stend}'})
             with concurrent.futures.ThreadPoolExecutor(max_workers=12) as executor:
                 bridge_restart_result = executor.map(self.tcp_to_serial_bridge_restart_ssh,
@@ -310,12 +322,12 @@ class PCI:
             if 'active (running)' not in command_status:
                 self.logger_stend.error(f'Не удается запустить сервис tcp-to-serial-bridge-router{board_count}, \
                             выполнение программы невозможно', extra={'stend': f'{self.stend}'})
-                write_new_note(f'Не удается запустить сервис tcp-to-serial-bridge-router_ssh\n')
+                write_new_note_pci(f'Не удается запустить сервис tcp-to-serial-bridge-router_ssh\n')
                 return False
             else:
                 self.logger_stend.info(f'Cервис tcp-to-serial-bridge-router{board_count} запущен',
                                        extra={'stend': f'{self.stend}'})
-                write_new_note(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
+                write_new_note_pci(f'Cервис tcp-to-serial-bridge-router{board_count} запущен\n')
             ssh.disconnect()
             return True
         except:
@@ -327,7 +339,7 @@ class PCI:
         :param service: имя сервиса
         :return: ничего
         """
-        write_new_note('Проверка сервиса {}...\n'.format(service))
+        write_new_note_pci('Проверка сервиса {}...\n'.format(service))
         try:
             host_config = {
                 'device_type': 'linux',
@@ -346,17 +358,17 @@ class PCI:
                 if 'active (running)' not in command_status:
                     self.logger_stend.error(f'Сервис {service} не удается запустить, \
                             выполнение программы невозможно', extra={'stend': f'{self.stend}'})
-                    write_new_note('Сервис не удается запустить\n'.format(service))
+                    write_new_note_pci('Сервис не удается запустить\n'.format(service))
                     return False
                 else:
                     self.logger_stend.info(f'Cервис {service} запущен', extra={'stend': f'{self.stend}'})
-                    write_new_note('Сервис {} запущен\n'.format(service))
+                    write_new_note_pci('Сервис {} запущен\n'.format(service))
                     ssh.disconnect()
                     return True
 
             else:
                 self.logger_stend.info(f'Cервис {service} запущен', extra={'stend': f'{self.stend}'})
-                write_new_note('Сервис {} запущен\n'.format(service))
+                write_new_note_pci('Сервис {} запущен\n'.format(service))
                 ssh.disconnect()
                 return True
         except:
@@ -396,6 +408,13 @@ class PCI:
         return uboot_prompt, console_output
 
     def init_disk(self, connect, sn, place):
+        """
+        инициализация дисков
+        :param connect:
+        :param sn:
+        :param place:
+        :return:
+        """
         time.sleep(10)
         sata_list = []
         for _ in range(6):
@@ -418,12 +437,12 @@ class PCI:
             self.logger_script.info(f'SSD удалось инициализировать!'
                                     f' SSD удалось инициализировать {len(check_list)} раз из 6',
                                     extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('SSD удалось инициализировать!\n')
+            write_new_note_pci('SSD удалось инициализировать!\n')
             return sata_info
         else:
             self.logger_script.error('SSD работает нестабильно!',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('SSD работает нестабильно\n')
+            write_new_note_pci('SSD работает нестабильно\n')
             return False
 
     def set_bootmenu(self, connect, phase, sn, place):
@@ -488,21 +507,20 @@ class PCI:
         set_bootmenu_output = self.send_commands(connect, setenv_commands, sn, place, timeout=90)
         self.logger_script.info('BOOTMENU натсроено', extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                              'place': f'{place}'})
-        write_new_note('BOOTMENU натсроено\n')
+        write_new_note_pci('BOOTMENU натсроено\n')
         if 'Loading' in set_bootmenu_output[0]:
             self.logger_script.info('Началась загрузка файлов по TFTP',
                                     extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
         return set_bootmenu_output
 
     def timer(self):
-        write_new_note('0.00%')
+        write_new_note_pci('0.00%')
         count = self.install_software_timeout
         while count >= 0:
             count = count - 1
             time.sleep(1)
-            set_time(f'{(self.install_software_timeout-count)/(self.install_software_timeout/100)}'[:4] + '%')
-
-        set_time('Установка завершена!\n')
+            set_time_pci(f'{(self.install_software_timeout-count)/(self.install_software_timeout/100)}'[:4] + '%')
+        set_time_pci('Установка завершена!\n')
 
     def install_software(self, connect, phase, sn, place):
         """
@@ -519,35 +537,35 @@ class PCI:
         if phase == 'install' and '  No volume groups found' in console_output:
             self.logger_script.info('Загрузка файлов по TFTP прошла успешно. Началась установка файлов с флешки',
                                     extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Загрузка файлов по TFTP прошла успешно. Началась установка файлов с флешки\n')
+            write_new_note_pci('Загрузка файлов по TFTP прошла успешно. Началась установка файлов с флешки\n')
         elif phase == 'install' and 'Error: Install disk with label: INSTALLER not found' in console_output:
             self.logger_script.error('Не удалось обнаружить флешку с LABEL: INSTALLER',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Не удалось обнаружить флешку\n')
+            write_new_note_pci('Не удалось обнаружить флешку\n')
             return False
 
         elif phase == 'install' and 'Error while generating lvm2 partitions' in console_output:
             self.logger_script.error('Возникли проблемы с разбиением диска на разделы',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Возникли проблемы с разбиением диска на разделы\n')
+            write_new_note_pci('Возникли проблемы с разбиением диска на разделы\n')
             return False
 
         elif phase == 'install' and 'Disk too small' in console_output:
             self.logger_script.error('Возникли проблемы с определением размера SSD',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Возникли проблемы с определением размера SSD\n')
+            write_new_note_pci('Возникли проблемы с определением размера SSD\n')
             return False
 
         elif phase == 'install' and 'Lvm group vg0 already exists' in console_output:
             self.logger_script.error('На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD\n')
+            write_new_note_pci('На флешке/HDD найдены разделы. Необходимо отформатировать флешку/HDD\n')
             return False
 
         else:
             self.logger_script.error('Не удалось начать установку ПО по неизвестным причинам',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Не удалось начать установку ПО по неизвестным причинам\n')
+            write_new_note_pci('Не удалось начать установку ПО по неизвестным причинам\n')
             return False
 
         start_installing_sw = connect.read_very_eager().decode('utf-8')
@@ -597,7 +615,7 @@ class PCI:
         version = self.send_command(connect, 'show version', sn, place)
         self.logger_script.info('Вход на устройство выполнен успешно',
                                 extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-        write_new_note('Вход на устройство выполнен успешно\n')
+        write_new_note_pci('Вход на устройство выполнен успешно\n')
         return version
 
     def hdd_check(self, connect, sn, place):
@@ -617,22 +635,22 @@ class PCI:
             check_result_out = 'Внешний HDD не найден'
             self.logger_script.info(check_result_out, extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                              'place': f'{place}'})
-            write_new_note('Внешний HDD не найден\n')
+            write_new_note_pci('Внешний HDD не найден\n')
         else:
             check_result_out = 'Внешний HDD найден'
             self.logger_script.error(check_result_out, extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                               'place': f'{place}'})
-            write_new_note('Внешний HDD не найден\n')
+            write_new_note_pci('Внешний HDD не найден\n')
         if 'scsi@0:0.0.0' not in lshw_command:
             check_result_in = 'Внутренний HDD не найден'
             self.logger_script.info(check_result_in, extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                             'place': f'{place}'})
-            write_new_note('Внутренний HDD не найден\n')
+            write_new_note_pci('Внутренний HDD не найден\n')
         else:
             check_result_in = 'Внутренний HDD найден'
             self.logger_script.error(check_result_in, extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                              'place': f'{place}'})
-            write_new_note('Внутренний HDD найден\n')
+            write_new_note_pci('Внутренний HDD найден\n')
 
         return lshw_command, check_result_out, check_result_in
 
@@ -683,10 +701,10 @@ class PCI:
         for port_num in range(self.nmc_ports_count):
             if f'{pci_addr}.{port_num}' in lshw_command:
                 check_result = 'Все порты NMC модуля найдены'
-                write_new_note('Все порты NMC модуля найдены\n')
+                write_new_note_pci('Все порты NMC модуля найдены\n')
             else:
                 check_result = 'По крайней мере один порт NMC модуля не найден'
-                write_new_note('По крайней мере один порт NMC модуля не найден\n')
+                write_new_note_pci('По крайней мере один порт NMC модуля не найден\n')
         logging.verbose(check_result)
         return lshw_command, check_result
 
@@ -720,10 +738,17 @@ class PCI:
             self.logger_debag(ping_result, sn, place)
             return ping_result
         except:
-            write_new_note("Не удалось подключится!\n")
+            write_new_note_pci("Не удалось подключится!\n")
             return False
 
     def erase_disk(self, connect, sn, place):
+        """
+        Удаление разделов с дисков
+        :param connect:
+        :param sn:
+        :param place:
+        :return:
+        """
         self.send_command(connect, 'root-shell', sn, place, timeout=20, expect_string='>')
         self.send_command(connect, self.master_password, sn, place)
         self.send_command(connect, 'fdisk /dev/sdb', sn, place, timeout=10, expect_string='Команда (m для справки): ')
@@ -736,14 +761,21 @@ class PCI:
             self.send_command(connect, 'exit', sn, place, timeout=5)
             self.logger_script.info(f'Удаление разделов выполнено успешно',
                                     extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('Удаление разделов выполнено успешно\n')
+            write_new_note_pci('Удаление разделов выполнено успешно\n')
             return fdisk_info
         else:
             self.logger_script.error(f'При удалении разделов возникла ошибка',
                                      extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
-            write_new_note('При удалении разделов возникла ошибка\n')
+            write_new_note_pci('При удалении разделов возникла ошибка\n')
 
     def create_protocol(self, device_num, serial_num_router, result):
+        """
+        создание протоколов
+        :param device_num:
+        :param serial_num_router:
+        :param result:
+        :return:
+        """
         number = serial_num_router[-5::]
         flash_result = result[f'device_num_{device_num}']['flash_check_result'][1]
         losses = re.findall(r'\d+% packet loss', result[f'device_num_{device_num}']['ping_result'])[0]
@@ -791,26 +823,26 @@ class PCI:
                 result[f'device_num_{device_num}']['sn'] = sn
 
                 # Вход в uboot устройства
-                write_new_note(f'Вход в Uboot устройства {device_num}...\n')
+                write_new_note_pci(f'Вход в Uboot устройства {device_num}...\n')
                 self.logger_script.info(f'Вход в Uboot устройства',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['uboot_prompt'] = self.enter_uboot(connect, phase, sn, place)
 
                 # Инициализация SSD
-                write_new_note(f'Инициализация SSD устойства {device_num}...\n')
+                write_new_note_pci(f'Инициализация SSD устойства {device_num}...\n')
                 self.logger_script.info(f'Инициализация SSD устойства',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['sata_info'] = self.init_disk(connect, sn, place)
 
                 # Инициализация bootmenu
-                write_new_note(f'Настройка BOOTMENU устройства {device_num}...\n')
+                write_new_note_pci(f'Настройка BOOTMENU устройства {device_num}...\n')
                 self.logger_script.info(f'Настройка Bootmenu устройства',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['bootmenu_1_install'] = self.set_bootmenu(connect, phase,
                                                                                              sn, place)
 
                 # Установка ПО на устройство
-                write_new_note(f'Установка ПО на устройство {device_num}...\n')
+                write_new_note_pci(f'Установка ПО на устройство {device_num}...\n')
                 self.logger_script.info(f'Установка ПО на устройство',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 time.sleep(5)
@@ -818,7 +850,7 @@ class PCI:
                                                                                                   place)
 
                 # Проверки устройства после установки ПО
-                write_new_note(f'Вход для проведения проверок на устройство {device_num}...\n')
+                write_new_note_pci(f'Вход для проведения проверок на устройство {device_num}...\n')
                 self.logger_script.info(f'Вход для проведения проверок на устройство',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['post_install_check_result'] = self.post_install_check(connect, sn,
@@ -826,7 +858,7 @@ class PCI:
 
                 # Проверка наличия HDD на устройстве
                 if self.hdd_present:
-                    write_new_note(f'Проверка наличия HDD на устройстве {device_num}...\n')
+                    write_new_note_pci(f'Проверка наличия HDD на устройстве {device_num}...\n')
                     self.logger_script.info(f'Проверка наличия HDD на устройстве',
                                             extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                     result[f'device_num_{device_num}']['hdd_check_result'] = self.hdd_check(connect, sn, place)
@@ -835,7 +867,7 @@ class PCI:
                                                                              'проверка наличия HDD не проводилась'
 
                 # Проверка наличия 2-х Flash накопителей
-                write_new_note(f'Проверка наличия 2-х Flash накопителей на устройстве {device_num}...\n')
+                write_new_note_pci(f'Проверка наличия 2-х Flash накопителей на устройстве {device_num}...\n')
                 self.logger_script.info(f'Проверка наличия 2-х Flash накопителей на устройстве',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['flash_check_result'] =\
@@ -844,14 +876,14 @@ class PCI:
 
                 # Проверка NMC модуля на устройстве
                 if self.nmc_ports_count != 0:
-                    write_new_note(f'Проверка NMC модуля на устройстве {device_num}...\n')
+                    write_new_note_pci(f'Проверка NMC модуля на устройстве {device_num}...\n')
                     result[f'device_num_{device_num}']['nmc_check_result'] = self.nmc_check(connect)
                 else:
                     result[f'device_num_{device_num}']['nmc_check_result'] = 'Исполнение без NMC модуля, проверка ' \
                                                                              'наличия NMC модуля не проводилась '
 
                 # Проверка работоспособности портов на устройстве
-                write_new_note(f'Проверка работоспособности портов на устройстве {device_num}...\n')
+                write_new_note_pci(f'Проверка работоспособности портов на устройстве {device_num}...\n')
                 self.logger_script.info(f'Проверка работоспособности портов на устройстве',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['ping_result'] = self.ports_check(connect, self.ports_check_cmds,
@@ -859,7 +891,7 @@ class PCI:
 
                 # Удаление разделов на диске
                 if self.nmc_ports_count == 0:
-                    write_new_note(f'Удаление разделов на диске {device_num}...\n')
+                    write_new_note_pci(f'Удаление разделов на диске {device_num}...\n')
                     self.logger_script.info(f'Удаление разделов на диске',
                                             extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                     result[f'device_num_{device_num}']['erase_disk'] = self.erase_disk(connect, sn, place)
@@ -949,27 +981,25 @@ class PCI:
         for dev_num in range(1, len(result) + 1):
             serial_num_board = self.board_serial_number_list[int(dev_num) - 1]
             place = self.board_serial_number_list.index(serial_num_board) + 1
-            write_new_note(f'\nРезультат для устройства {dev_num}:\n')
+            write_new_note_pci(f'\nРезультат для устройства {dev_num}:\n')
             if 'неизвестная ошибка' in result[f'device_num_{dev_num}']['error']:
-                write_new_note('>>>Неуспех. Возникла неизвестная ошибка<<<\n')
+                write_new_note_pci('>>>Неуспех. Возникла неизвестная ошибка<<<\n')
 
                 self.logger_script.error('Устройство закончило работу с неизвестной ошибкой',
                                          extra={'sn': f'{serial_num_board}', 'stend': f'{self.stend}',
                                                 'place': f'{place}'})
-                SerialNumBoard.set_visual_inspection(serial_num_board, valid=True, error_code='666')
                 History.new_note(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с неизвестной ошибкой!')
                 Repair.new_note(serial_num_board, 'Плата закончиала работу с неизвестной ошибкой!')
                 return False
             elif 'Ошибка c устройством' in result[f'device_num_{dev_num}']['error']:
                 error_string = result[f'device_num_{dev_num}']['error_details'][0][0]
-                write_new_note(f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
+                write_new_note_pci(f'>>>Неуспех. ПО не было установлено/удалено: {error_string}<<<\n')
                 error_code = result[f'device_num_{dev_num}']['error_details'][0][2]
                 self.logger_script.error(f'Устройство закончило работу с ошибкой: {error_string}',
                                          extra={'sn': f'{serial_num_board}', 'stend': f'{self.stend}',
                                                 'place': f'{place}'})
-                SerialNumBoard.set_visual_inspection(serial_num_board, valid=True, error_code=error_code)
                 History.new_note(serial_num_board,
-                                 f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
+                                 f'СТЕНД_ПСИ, плата закончиала работу с ошибкой {error_code}!')
                 Repair.new_note(serial_num_board, error_code)
                 return False
             else:
@@ -984,20 +1014,17 @@ class PCI:
                         flash_result == 'Flash накопители найдены' and \
                         ext_slot_in_result == 'Внутренний HDD найден' and \
                         losses == '0% packet loss':
-                    write_new_note(f'Создание карточки изделия для устройства {dev_num}...\n')
-                    Devices.create_device(serial_num_board)
-                    write_new_note('\n>>>Карточка изделия создана!<<<\n')
-                    Devices.update_diag(serial_num_board)
-                    SerialNumBoard.set_visual_inspection(serial_num_board, valid=True)
-                    History.new_note(serial_num_board, f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу без ошибок!')
-                    write_new_note('\n>>>Диагностика успешно пройдена!<<<\n')
+                    write_new_note_pci(f'Создание карточки изделия для устройства {dev_num}...\n')
+                    write_new_note_pci('\n>>>Карточка изделия создана!<<<\n')
+                    History.new_note(serial_num_board, f'СТЕНД_ПСИ, плата закончиала работу без ошибок!')
+                    write_new_note_pci('\n>>>ПСИ успешно пройдена!<<<\n')
                     self.logger_script.info('Устройство закончило работу без ошибок!',
                                             extra={'sn': f'{serial_num_board}', 'stend': f'{self.stend}',
                                                    'place': f'{place}'})
-                    Statistic.new_note(serial_num_board, 'Стенд диагностики')
+                    Statistic.new_note(serial_num_board, 'Стенд ПСИ')
                     return True
                 else:
-                    write_new_note('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
+                    write_new_note_pci('>>>Неуспех. ПО было установлено, но при проверке АП возникли ошибки<<<\n')
                     serial_num_board = self.board_serial_number_list[dev_num - 1]
                     if ext_slot_out_result in ['Внешний HDD не найден',
                                                'По крайней мере один порт NMC модуля не найден']:
@@ -1025,12 +1052,12 @@ class PCI:
                         error_code = '999'
                     SerialNumBoard.set_visual_inspection(serial_num_board, valid=True, error_code=error_code)
                     History.new_note(serial_num_board,
-                                     f'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с ошибкой {error_code}!')
+                                     f'СТЕНД_ПСИ, плата закончиала работу с ошибкой {error_code}!')
                     Repair.new_note(serial_num_board, error_code)
-                    write_new_note(
+                    write_new_note_pci(
                         f'Результат проверки слота расширения: {ext_slot_out_result}, {ext_slot_in_result}\n')
-                    write_new_note(f'Результат проверки USB портов: {flash_result}\n')
-                    write_new_note(f'Результат проверки Ethernet портов: {losses}\n')
+                    write_new_note_pci(f'Результат проверки USB портов: {flash_result}\n')
+                    write_new_note_pci(f'Результат проверки Ethernet портов: {losses}\n')
                     self.logger_script.error(
                         f'Устройство закончило работу с ошибками АП: {ext_slot_out_result}, {ext_slot_in_result},'
                         f' {flash_result}, {losses}',

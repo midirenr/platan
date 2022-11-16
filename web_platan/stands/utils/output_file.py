@@ -35,3 +35,18 @@ def set_time(time):
     for line in lines:
         output_file.write(line)
     output_file.close()
+
+
+def set_time_pci(time):
+    output_file = open('/home/nikita/Рабочий стол/web/web_platan/stands/templates/ajax/pci_output.html',
+                       'r', encoding='utf-8')
+    lines = output_file.readlines()
+    lines = lines[:-1]
+    lines.append(time)
+    output_file.close()
+
+    output_file = open('/home/nikita/Рабочий стол/web/web_platan/stands/templates/ajax/pci_output.html',
+                       'w', encoding='utf-8')
+    for line in lines:
+        output_file.write(line)
+    output_file.close()

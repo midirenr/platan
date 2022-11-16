@@ -15,19 +15,36 @@ from .output_file import *
 
 
 class CustomError(Exception):
+    """
+    Класс для добавления кастомных ошибок
+    """
     pass
 
 
 class CustomErrorExtended(Exception):
+    """
+    Класс для добавления кастомных ошибок
+    """
     pass
 
 
 class Diagnostic:
+    """
+    Класс диагностики, экземпляр класса - отдельный процесс диагностики
+    """
     def __init__(self, board_count, modification, board_serial_number_list, host_ip):
+        """
+        Инициализируем общую информацию, необходимую в процессе диагностики. Срабатывает при создании экземпляра класса
+        :param board_count: количество плат подлежащих диагностики
+        :param modification: модификация платы
+        :param board_serial_number_list: серийные номера плат подлежащих диагностики
+        :param host_ip: ip клиента
+        """
         self.board_count = board_count
         self.modification = modification
         self.board_serial_number_list = board_serial_number_list
         self.host_ip = host_ip
+        # порты подлежащие проверке
         self.ports_check_cmds = [
             'configure terminal', 'vlan 12,34,56,78',
             'interface switchport 1', 'switchport access vlan 12', 'no shutdown', 'exit',
@@ -40,6 +57,7 @@ class Diagnostic:
             'interface switchport 8', 'switchport access vlan 78', 'no shutdown', 'exit',
             'interface br112', 'include eth1', 'include eth2', 'no shutdown', 'end'
         ]
+        # соответствие модификации платы к файлу конфигурации
         self.modifications_config = {
             'КРПГ.465614.001': 'devices_sp_hdd.yaml',
             'КРПГ.465614.001-01': 'devices_sp_hdd.yaml',
@@ -60,7 +78,9 @@ class Diagnostic:
             'КРПГ.465614.001-16': 'devices_sp_pci_2.yaml',
             'КРПГ.465614.001-17': 'devices_sp_pci_2.yaml',
         }
-        # log_debag
+        # инициализация log файлов
+
+        # debag_log_1
         self.logger_debag_1 = logging.getLogger('debag_1')
         self.log_d_1 = logging.FileHandler('stands/utils/logs/diagnostic/debag_log_1.log')
         self.logger_debag_1.setLevel(logging.DEBUG)
@@ -69,6 +89,8 @@ class Diagnostic:
             '%Y-%m-%d %H:%M:%S')
         self.log_d_1.setFormatter(self.format_d_script)
         self.logger_debag_1.addHandler(self.log_d_1)
+
+        # debag_log_2
         self.logger_debag_2 = logging.getLogger('debag_2')
         self.log_d_2 = logging.FileHandler('stands/utils/logs/diagnostic/debag_log_2.log')
         self.logger_debag_2.setLevel(logging.DEBUG)
@@ -77,6 +99,8 @@ class Diagnostic:
             '%Y-%m-%d %H:%M:%S')
         self.log_d_2.setFormatter(self.format_d_script)
         self.logger_debag_2.addHandler(self.log_d_2)
+
+        # debag_log_3
         self.logger_debag_3 = logging.getLogger('debag_3')
         self.log_d_3 = logging.FileHandler('stands/utils/logs/diagnostic/debag_log_3.log')
         self.logger_debag_3.setLevel(logging.DEBUG)
@@ -85,6 +109,8 @@ class Diagnostic:
             '%Y-%m-%d %H:%M:%S')
         self.log_d_3.setFormatter(self.format_d_script)
         self.logger_debag_3.addHandler(self.log_d_3)
+
+        # debag_log_4
         self.logger_debag_4 = logging.getLogger('debag_4')
         self.log_d_4 = logging.FileHandler('stands/utils/logs/diagnostic/debag_log_4.log')
         self.logger_debag_4.setLevel(logging.DEBUG)
@@ -93,6 +119,8 @@ class Diagnostic:
             '%Y-%m-%d %H:%M:%S')
         self.log_d_4.setFormatter(self.format_d_script)
         self.logger_debag_4.addHandler(self.log_d_4)
+
+        # debag_log_5
         self.logger_debag_5 = logging.getLogger('debag_5')
         self.log_d_5 = logging.FileHandler('stands/utils/logs/diagnostic/debag_log_5.log')
         self.logger_debag_5.setLevel(logging.DEBUG)
@@ -101,7 +129,8 @@ class Diagnostic:
             '%Y-%m-%d %H:%M:%S')
         self.log_d_5.setFormatter(self.format_d_script)
         self.logger_debag_5.addHandler(self.log_d_5)
-        # log_info stend
+
+        # log_stend
         self.logger_stend = logging.getLogger('stend')
         self.log_i_stend = logging.FileHandler('stands/utils/logs/diagnostic/log_stend.log')
         self.logger_stend.setLevel(logging.INFO)
@@ -109,7 +138,8 @@ class Diagnostic:
                                                 '%Y-%m-%d %H:%M:%S')
         self.log_i_stend.setFormatter(self.format_i_stend)
         self.logger_stend.addHandler(self.log_i_stend)
-        # log_info script
+
+        # log_script
         self.logger_script = logging.getLogger('script')
         self.log_i_script = logging.FileHandler('stands/utils/logs/diagnostic/log_script.log')
         self.logger_script.setLevel(logging.INFO)
@@ -119,6 +149,7 @@ class Diagnostic:
         self.log_i_script.setFormatter(self.format_i_script)
         self.logger_script.addHandler(self.log_i_script)
 
+        # общая информация о клиенте, определяется в start_diagnostic()
         self.hdd_present = None
         self.admin_password = None
         self.serviceuser_password = None
@@ -131,9 +162,9 @@ class Diagnostic:
     @staticmethod
     def verify_yaml_name(yaml_file):
         """
-        Ищет файл с введенным именем в текущем каталоге
+        Проверяет существование файла по переданному пути
         :param yaml_file: имя файла конфигурации
-        :return: возвращает также имя файла конфигурации. Может отличаться от изначально введенного пользователем
+        :return: False, если файл не найден; путь к файлу, если найден
         """
         os.chdir('stands/utils/yamls')
         while True:
@@ -215,6 +246,10 @@ class Diagnostic:
         return all_output
 
     def get_ip(self):
+        """
+        Получение ip хоста
+        :return: True, если ip получен, False если ip не получен
+        """
         try:
             self.logger_stend.info('Получении ip хоста...', extra={'stend': f'{self.stend}'})
             write_new_note('Получении ip хоста..\n')
@@ -396,6 +431,13 @@ class Diagnostic:
         return uboot_prompt, console_output
 
     def init_disk(self, connect, sn, place):
+        """
+        Инициализация диска
+        :param connect: объект подключения по telnet
+        :param sn:
+        :param place:
+        :return:
+        """
         time.sleep(10)
         sata_list = []
         for _ in range(6):
@@ -432,11 +474,6 @@ class Diagnostic:
         :param place:
         :param sn:
         :param phase:
-        :param master_password: пароль учетки master
-        :param serviceuser_password: пароль учетки serviceuser
-        :param admin_password: пароль учетки admin
-        :param ftp_directory: ftp директория с пакетами ПО
-        :param host_ip: адрес tftp/ftp сервера
         :param connect: объект подключения по telnet
         :return:
         """
@@ -486,15 +523,19 @@ class Diagnostic:
         self.logger_script.info('Начало наcтройки BOOTMENU', extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                                     'place': f'{place}'})
         set_bootmenu_output = self.send_commands(connect, setenv_commands, sn, place, timeout=90)
-        self.logger_script.info('BOOTMENU натсроено', extra={'sn': f'{sn}', 'stend': f'{self.stend}',
+        self.logger_script.info('BOOTMENU настроено', extra={'sn': f'{sn}', 'stend': f'{self.stend}',
                                                              'place': f'{place}'})
-        write_new_note('BOOTMENU натсроено\n')
+        write_new_note('BOOTMENU настроено\n')
         if 'Loading' in set_bootmenu_output[0]:
             self.logger_script.info('Началась загрузка файлов по TFTP',
                                     extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
         return set_bootmenu_output
 
     def timer(self):
+        """
+        Запускает таймер и выводит процесс в окно вывода
+        :return:
+        """
         write_new_note('0.00%')
         count = self.install_software_timeout
         while count >= 0:
@@ -510,7 +551,6 @@ class Diagnostic:
         :param sn:
         :param place:
         :param phase: фаза установки: install или erase
-        :param wait_time: время установки в секундах
         :param connect: объект подключения по telnet
         :return: возвращает первые 5 секунд вывода с начала установки софта
         """
@@ -724,6 +764,13 @@ class Diagnostic:
             return False
 
     def erase_disk(self, connect, sn, place):
+        """
+        Удаление разделов с дисков
+        :param connect: объект подключения по telnet
+        :param sn:
+        :param place:
+        :return:
+        """
         self.send_command(connect, 'root-shell', sn, place, timeout=20, expect_string='>')
         self.send_command(connect, self.master_password, sn, place)
         self.send_command(connect, 'fdisk /dev/sdb', sn, place, timeout=10, expect_string='Команда (m для справки): ')
@@ -766,8 +813,8 @@ class Diagnostic:
                 result[f'device_num_{device_num}']['uboot_prompt'] = self.enter_uboot(connect, phase, sn, place)
 
                 # Инициализация SSD
-                write_new_note(f'Инициализация SSD устойства {device_num}...\n')
-                self.logger_script.info(f'Инициализация SSD устойства',
+                write_new_note(f'Инициализация SSD устройства {device_num}...\n')
+                self.logger_script.info(f'Инициализация SSD устройства',
                                         extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                 result[f'device_num_{device_num}']['sata_info'] = self.init_disk(connect, sn, place)
 
@@ -810,6 +857,7 @@ class Diagnostic:
                 result[f'device_num_{device_num}']['flash_check_result'] =\
                     self.flash_check(connect, self.hdd_present, result[f'device_num_{device_num}']['hdd_check_result'],
                                      sn, place)
+
                 # Проверка NMC модуля на устройстве
                 if self.nmc_ports_count != 0:
                     write_new_note(f'Проверка NMC модуля на устройстве {device_num}...\n')
@@ -825,14 +873,15 @@ class Diagnostic:
                 result[f'device_num_{device_num}']['ping_result'] = self.ports_check(connect, self.ports_check_cmds,
                                                                                      device['port'] - 230, sn, place)
 
+                # Удаление разделов с дисков
                 if self.nmc_ports_count == 0:
                     write_new_note(f'Удаление разделов на диске {device_num}...\n')
                     self.logger_script.info(f'Удаление разделов на диске',
                                             extra={'sn': f'{sn}', 'stend': f'{self.stend}', 'place': f'{place}'})
                     result[f'device_num_{device_num}']['erase_disk'] = self.erase_disk(connect, sn, place)
                 else:
-                    result[f'device_num_{device_num}'][
-                        'erase_disk'] = 'Удаление разделов не проводилось, так как исполнение с NMC модулем'
+                    result[f'device_num_{device_num}']['erase_disk'] =\
+                        'Удаление разделов не проводилось, так как исполнение с NMC модулем'
 
                 result[f'device_num_{device_num}']['error'] = 'False'  # признак не сработавшего исключения
                 return result
@@ -849,6 +898,10 @@ class Diagnostic:
             return result
 
     def start_diagnostic(self):
+        """
+        Функция начинает процесс диагностики
+        :return: результат диагностики
+        """
         # Проверка yaml файлов
         y_f = self.modifications_config.get(self.modification)
         yaml_file = self.verify_yaml_name(y_f)
@@ -918,8 +971,8 @@ class Diagnostic:
                                          extra={'sn': f'{serial_num_board}', 'stend': f'{self.stend}',
                                                 'place': f'{place}'})
                 SerialNumBoard.set_visual_inspection(serial_num_board, valid=True, error_code='666')
-                History.new_note(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончиала работу с неизвестной ошибкой!')
-                Repair.new_note(serial_num_board, 'Плата закончиала работу с неизвестной ошибкой!')
+                History.new_note(serial_num_board, 'СТЕНД_ДИАГНОСТИКИ, плата закончила работу с неизвестной ошибкой!')
+                Repair.new_note(serial_num_board, 'Плата закончила работу с неизвестной ошибкой!')
                 return False
             elif 'Ошибка c устройством' in result[f'device_num_{dev_num}']['error']:
                 error_string = result[f'device_num_{dev_num}']['error_details'][0][0]
@@ -945,7 +998,6 @@ class Diagnostic:
                         flash_result == 'Flash накопители найдены' and \
                         ext_slot_in_result == 'Внутренний HDD найден' and \
                         losses == '0% packet loss':
-                    # serial_num_board = self.serial_num_lst_2[dev_num - 1]
                     write_new_note(f'Создание карточки изделия для устройства {dev_num}...\n')
                     Devices.create_device(serial_num_board)
                     write_new_note('\n>>>Карточка изделия создана!<<<\n')

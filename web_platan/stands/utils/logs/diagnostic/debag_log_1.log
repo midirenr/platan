@@ -40206,3 +40206,51 @@ root@sr-be:/home/admin#
 2022-11-15 13:25:20 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0137  -  1  -  logger_debag: resend:  exit
 exit
 admin@sr-be#
+2022-11-16 11:53:29 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: 
+2022-11-16 11:53:42 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: sata init
+2022-11-16 11:54:12 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 11:54:12 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 192.168.1.2;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+2022-11-16 11:55:42 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 11:55:42 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: Traceback (most recent call last):
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 825, in hw_check
+    result[f'device_num_{device_num}']['bootmenu_1_install'] = self.set_bootmenu(connect, phase,
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 529, in set_bootmenu
+    if 'Loading' in set_bootmenu_output[0]:
+TypeError: 'bool' object is not subscriptable
+
+2022-11-16 12:12:01 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: 
+2022-11-16 12:12:14 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: sata init
+2022-11-16 12:12:44 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 12:12:44 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 192.168.1.2;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+2022-11-16 12:14:14 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 12:14:14 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: Traceback (most recent call last):
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 825, in hw_check
+    result[f'device_num_{device_num}']['bootmenu_1_install'] = self.set_bootmenu(connect, phase,
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 529, in set_bootmenu
+    if 'Loading' in set_bootmenu_output[0]:
+TypeError: 'bool' object is not subscriptable
+
+2022-11-16 12:45:57 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: 
+2022-11-16 12:46:10 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: sata init
+2022-11-16 12:46:40 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 12:46:40 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 192.168.1.2;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+2022-11-16 12:48:10 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 12:48:10 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: Traceback (most recent call last):
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 825, in hw_check
+    result[f'device_num_{device_num}']['bootmenu_1_install'] = self.set_bootmenu(connect, phase,
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 529, in set_bootmenu
+    if 'Loading' in set_bootmenu_output[0]:
+TypeError: 'bool' object is not subscriptable
+
+2022-11-16 13:20:57 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: 
+2022-11-16 13:21:10 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: sata init
+2022-11-16 13:21:40 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 13:21:40 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: send: usb start ;                 env set phy_sfp 1 ;                 dhcp ;                 setenv serverip 192.168.1.2;                 setenv fdt_addr_n 0x85D00000 ;                 setenv fdt_file_name baikal.dtb ;                 setenv initrd_addr_n 0x86000000 ;                 setenv initrd_file_name initrd.gz ;                 setenv kernel_addr_n 0x80100000 ;                 setenv kernel_file_name vmlinux.bin ;                 setenv ci_installed 1 ;                 setenv bootargs console=ttyS0,115200n8 usbcore.autosuspend=-1                 ei-auto_install=true ei-install_disk=/dev/sda ei-passwd_admin=admin                 ei-passwd_serviceuser=serviceuser ei-passwd_master=NEJvjok1cywQfHBUw ;                 setenv sata_setup_disk "sata init; run sata_common_disk" ;                 saveenv ;                 run net_load_all_tftp ; run all_bootnr
+2022-11-16 13:23:10 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: resend: 
+2022-11-16 13:23:10 - DEBUG - СТЕНД_ДИАГНОСТИКИ -  RS1020011B0138  -  1  -  logger_debag: Traceback (most recent call last):
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 825, in hw_check
+    result[f'device_num_{device_num}']['bootmenu_1_install'] = self.set_bootmenu(connect, phase,
+  File "/home/nikita/Рабочий стол/web/web_platan/stands/utils/diag.py", line 529, in set_bootmenu
+    if 'Loading' in set_bootmenu_output[0]:
+TypeError: 'bool' object is not subscriptable
+

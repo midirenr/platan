@@ -9,7 +9,7 @@ from .models import *
 from .utils.generate_serial_number import *
 from .utils.package import *
 from .utils.diag import Diagnostic
-from .utils import PCI
+from .utils.PCI_2 import PCI
 from .utils.get_host_ip import *
 from .utils.group_required import group_required
 from .utils.output_file import *
@@ -282,7 +282,7 @@ def stand_diagnostic_page(request):
             ip = get_ip(request)
             diagnostic = Diagnostic(board_count, modification, board_serial_number_list, ip)
             result = diagnostic.start_diagnostic()
-            #result = diagnostic.run(board_count, modification, board_serial_number_list, ip)
+            del diagnostic
             if result:
                 clear_file()
                 return render(request, 'stand-diagnostic.html', context={'form': form, 'result': result})
@@ -330,7 +330,8 @@ def stand_pci_page(request):
                                         form.cleaned_data['router_serial_number_4'],
                                         form.cleaned_data['router_serial_number_5']]
             ip = get_ip(request)
-            result = PCI.run(router_count, modification, router_serial_number_list, ip)
+            pci = PCI(router_count, modification, router_serial_number_list, ip)
+            result = pci.start_pci()
 
             if result:
                 clear_file_pci()
